@@ -518,8 +518,11 @@ function renderTankGauge(svgId, valorActual, yDomain, zonas, refTicks, decimales
   // linea del valor actual, atravesando tanque + barra de alerta
   svg.appendChild(svgEl("line", { x1: tankX, x2: rulerX + rulerW, y1: valY, y2: valY, stroke: "var(--ink)", "stroke-width": 1.6, "stroke-dasharray": "3 3", opacity: 0.8 }));
 
-  // placa con el valor actual y su unidad, sobre la linea de agua
-  const pillW = unidad === "hm³" ? 70 : 58, pillH = 20;
+  // placa con el valor actual y su unidad, sobre la linea de agua.
+  // El ancho se calcula segun el largo real del texto (monoespaciado a 11.5px)
+  // para que nunca quede mas angosta que el contenido y el texto se desborde.
+  const textoPill = `${fmt(valorActual, decimales)} ${unidad}`;
+  const pillW = textoPill.length * 7.1 + 16, pillH = 20;
   const pillY = Math.min(Math.max(valY - pillH / 2, top + 2), bottom - pillH - 2);
   svg.appendChild(svgEl("rect", {
     x: tankX + tankW / 2 - pillW / 2, y: pillY, width: pillW, height: pillH, rx: 6,
@@ -529,7 +532,7 @@ function renderTankGauge(svgId, valorActual, yDomain, zonas, refTicks, decimales
     x: tankX + tankW / 2, y: pillY + pillH / 2 + 4, "text-anchor": "middle",
     "font-size": "11.5", "font-weight": "800", class: "mono",
   });
-  valLabel.textContent = `${fmt(valorActual, decimales)} ${unidad}`;
+  valLabel.textContent = textoPill;
   valLabel.setAttribute("fill", "var(--ink)");
   svg.appendChild(valLabel);
 }
