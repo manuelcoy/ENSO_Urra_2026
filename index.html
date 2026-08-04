@@ -436,8 +436,8 @@ function buscarCierre(diasAtras) {
 
 // Ninguna ventana promedia: cada boton muestra el dato horario de CIERRE de
 // ese dia especifico (n=0 es el ultimo dato disponible, dia en curso). La
-// tendencia compara ese cierre contra el cierre del dia inmediatamente
-// anterior (dia a dia), nunca contra un promedio de rango.
+// tendencia es la DIFERENCIA (sin extrapolar) contra el cierre del dia
+// inmediatamente anterior -- nunca un promedio de rango ni una tasa mensual.
 function calcularEstado(n) {
   if (n === 0) {
     const u = DATA.ultimo_dato_horario;
@@ -447,8 +447,8 @@ function calcularEstado(n) {
       aportes: u.aportes,
       alertaCota: clasificarAlertaJS(u.nivel, UMBRAL_NIVEL_MES),
       alertaVU: clasificarAlertaJS(u.volumen_util_hm3, UMBRAL_VU_MES),
-      tendenciaCota: ayer ? (u.nivel - ayer.nivel) * 30 : 0,
-      tendenciaVU: ayer ? (u.volumen_util_hm3 - ayer.volumen_util_hm3) * 30 : 0,
+      tendenciaCota: ayer ? u.nivel - ayer.nivel : 0,
+      tendenciaVU: ayer ? u.volumen_util_hm3 - ayer.volumen_util_hm3 : 0,
     };
   }
 
@@ -457,8 +457,8 @@ function calcularEstado(n) {
   return {
     n, fecha: c.fecha, cota: c.nivel, vu: c.volumen_util_hm3, pct: c.pct_llenado, aportes: c.aportes,
     alertaCota: c.cota_alerta, alertaVU: c.volumen_util_alerta,
-    tendenciaCota: anterior ? (c.nivel - anterior.nivel) * 30 : 0,
-    tendenciaVU: anterior ? (c.volumen_util_hm3 - anterior.volumen_util_hm3) * 30 : 0,
+    tendenciaCota: anterior ? c.nivel - anterior.nivel : 0,
+    tendenciaVU: anterior ? c.volumen_util_hm3 - anterior.volumen_util_hm3 : 0,
   };
 }
 function etiquetaVentana(n) {
@@ -641,19 +641,24 @@ function renderOniDial() {
   svg.appendChild(svgEl("circle", { cx: nx, cy: ny, r: 5, fill: needleColor, stroke: "var(--panel)", "stroke-width": 2 }));
 }
 
+function tituloComparacion(n) {
+  return n === 0 ? "Diferencia: último dato de hoy vs. cierre de ayer"
+                 : `Diferencia: cierre de ${etiquetaVentana(n)} vs. cierre del día anterior a ese`;
+}
+
 function renderHeroReadouts(estado) {
   document.getElementById("rv-cota").textContent = fmt(estado.cota, 2) + " msnm";
   document.getElementById("status-cota").innerHTML = `<span style="color:${COLOR_STATUS[estado.alertaCota]}">● Alerta ${LABEL_ESTADO[estado.alertaCota]}</span>`;
   const cotaRateUp = estado.tendenciaCota >= 0;
   document.getElementById("chip-cota-rate").innerHTML =
-    `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="Tendencia: hoy vs. hace ${estado.n} día(s)">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m/mes</span>`;
+    `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m</span>`;
 
   document.getElementById("rv-vu").textContent = fmt(estado.vu, 0) + " hm³";
   document.getElementById("status-vu").innerHTML = `<span style="color:${COLOR_STATUS[estado.alertaVU]}">● Alerta ${LABEL_ESTADO[estado.alertaVU]}</span>`;
   const vuRateUp = estado.tendenciaVU >= 0;
   document.getElementById("chip-vu-pct").innerHTML = `<span class="stat-chip pct">${fmt(estado.pct, 1)}% útil</span>`;
   document.getElementById("chip-vu-rate").innerHTML =
-    `<span class="stat-chip ${vuRateUp ? "rate-up" : "rate-down"}" title="Tendencia: hoy vs. hace ${estado.n} día(s)">${vuRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaVU), 1)} hm³/mes</span>`;
+    `<span class="stat-chip ${vuRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${vuRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaVU), 1)} hm³</span>`;
 
   const r = DATA.reporte_actual;
   const oniColor = r.oni.oni_ultimo >= DATA.umbral_oni ? "var(--nino)" : r.oni.oni_ultimo <= -DATA.umbral_oni ? "var(--nina)" : "var(--neutral-phase)";
@@ -676,11 +681,12 @@ function renderHallazgo(estado) {
   const intro = estado.n === 0
     ? `Con el último dato disponible (${formatearFechaHora(estado.fecha)})`
     : `Con el cierre de ${etiquetaVentana(estado.n)} (${estado.fecha})`;
+  const refCota = estado.n === 0 ? "el cierre de ayer" : "el día anterior";
   el.innerHTML = `<b>${intro}:</b> la cota está en alerta <b>${LABEL_ESTADO[estado.alertaCota]}</b>
-    (<span class="stat-chip ${estado.tendenciaCota >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaCota,2)} m/mes</span>),
+    (<span class="stat-chip ${estado.tendenciaCota >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaCota,2)} m</span> vs. ${refCota}),
     pero el volumen útil ya está en alerta <b>${LABEL_ESTADO[estado.alertaVU]}</b>
     (<span class="stat-chip pct" style="font-size:13px;padding:1px 8px;">${fmt(estado.pct,1)}%</span> de llenado,
-    <span class="stat-chip ${estado.tendenciaVU >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaVU,1)} hm³/mes</span>) —
+    <span class="stat-chip ${estado.tendenciaVU >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaVU,1)} hm³</span> vs. ${refCota}) —
     dos lecturas del mismo instante pueden diferir porque la relación cota-volumen no es lineal. Cambia el día
     arriba para ver si la alerta se sostiene o solo fue un dato puntual.`;
 }
