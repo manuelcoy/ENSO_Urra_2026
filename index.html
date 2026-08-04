@@ -236,6 +236,7 @@
           <div class="gauge-readout">
             <div class="rv" id="rv-cota"></div>
             <div id="chip-cota-rate"></div>
+            <div id="chip-cota-vshoy"></div>
             <div class="status-line" id="status-cota"></div>
           </div>
         </div>
@@ -245,6 +246,7 @@
           <div class="gauge-readout">
             <div class="rv" id="rv-vu"></div>
             <div id="chip-vu-pct"></div><div id="chip-vu-rate"></div>
+            <div id="chip-vu-vshoy"></div>
             <div class="status-line" id="status-vu"></div>
           </div>
         </div>
@@ -426,39 +428,57 @@ function clasificarAlertaJS(valor, fila) {
   if (valor < fila.umbral_amarillo_P50) return "AMARILLO";
   return "VERDE";
 }
-const MES_ACTUAL = new Date(DATA.reporte_actual.fecha).getMonth() + 1;
-const UMBRAL_NIVEL_MES = DATA.umbrales_nivel_por_mes.find(u => u.mes === MES_ACTUAL);
-const UMBRAL_VU_MES = DATA.umbrales_vu_por_mes.find(u => u.mes === MES_ACTUAL);
-
 function buscarCierre(diasAtras) {
   return CIERRES_DIARIOS.find(c => c.dias_atras === diasAtras);
+}
+
+// El umbral es por mes CALENDARIO (un mismo nivel es normal en enero y
+// critico en abril), asi que las bandas de color del tanque tienen que
+// usar el umbral del MES DE ESE DIA especifico, no siempre el mes actual
+// -- si no, un dia de otro mes puede mostrar la alerta correcta en texto
+// pero las bandas de color de otro mes (contradiciendose visualmente).
+function umbralParaMes(mes) {
+  return {
+    nivel: DATA.umbrales_nivel_por_mes.find(u => u.mes === mes),
+    vu: DATA.umbrales_vu_por_mes.find(u => u.mes === mes),
+  };
 }
 
 // Ninguna ventana promedia: cada boton muestra el dato horario de CIERRE de
 // ese dia especifico (n=0 es el ultimo dato disponible, dia en curso). La
 // tendencia es la DIFERENCIA (sin extrapolar) contra el cierre del dia
 // inmediatamente anterior -- nunca un promedio de rango ni una tasa mensual.
+// diffHoy: diferencia entre ese cierre y el ultimo reporte disponible (hoy).
 function calcularEstado(n) {
+  const hoyDato = DATA.ultimo_dato_horario;
+
   if (n === 0) {
-    const u = DATA.ultimo_dato_horario;
+    const u = hoyDato;
     const ayer = buscarCierre(1);
+    const umbral = umbralParaMes(parseInt(u.fecha_hora.slice(5, 7), 10));
     return {
       n, fecha: u.fecha_hora, cota: u.nivel, vu: u.volumen_util_hm3, pct: u.pct_llenado,
       aportes: u.aportes,
-      alertaCota: clasificarAlertaJS(u.nivel, UMBRAL_NIVEL_MES),
-      alertaVU: clasificarAlertaJS(u.volumen_util_hm3, UMBRAL_VU_MES),
+      alertaCota: clasificarAlertaJS(u.nivel, umbral.nivel),
+      alertaVU: clasificarAlertaJS(u.volumen_util_hm3, umbral.vu),
+      umbralNivel: umbral.nivel, umbralVu: umbral.vu,
       tendenciaCota: ayer ? u.nivel - ayer.nivel : 0,
       tendenciaVU: ayer ? u.volumen_util_hm3 - ayer.volumen_util_hm3 : 0,
+      diffHoyCota: 0, diffHoyVU: 0,
     };
   }
 
   const c = buscarCierre(n);
   const anterior = buscarCierre(n + 1);
+  const umbral = umbralParaMes(parseInt(c.fecha.slice(5, 7), 10));
   return {
     n, fecha: c.fecha, cota: c.nivel, vu: c.volumen_util_hm3, pct: c.pct_llenado, aportes: c.aportes,
     alertaCota: c.cota_alerta, alertaVU: c.volumen_util_alerta,
+    umbralNivel: umbral.nivel, umbralVu: umbral.vu,
     tendenciaCota: anterior ? c.nivel - anterior.nivel : 0,
     tendenciaVU: anterior ? c.volumen_util_hm3 - anterior.volumen_util_hm3 : 0,
+    diffHoyCota: hoyDato.nivel - c.nivel,
+    diffHoyVU: hoyDato.volumen_util_hm3 - c.volumen_util_hm3,
   };
 }
 function etiquetaVentana(n) {
@@ -563,7 +583,7 @@ function renderTankGauge(svgId, valorActual, yDomain, zonas, refTicks, decimales
 
 function renderTankCota(estado) {
   const ref = DATA.niveles_referencia;
-  const u = UMBRAL_NIVEL_MES;
+  const u = estado.umbralNivel;
   const yDomain = [ref.NMIF, ref.NFOR + 1.2];
   renderTankGauge("gauge-tank-cota", estado.cota, yDomain, [
     { from: yDomain[0], to: u.umbral_rojo_P10, color: "var(--critical)" },
@@ -579,7 +599,7 @@ function renderTankCota(estado) {
 }
 
 function renderTankVolumen(estado) {
-  const u = UMBRAL_VU_MES;
+  const u = estado.umbralVu;
   const yMax = DATA.volumen_util_max_hm3 * 1.05;
   const yDomain = [0, yMax];
   renderTankGauge("gauge-tank-vu", estado.vu, yDomain, [
@@ -651,14 +671,30 @@ function renderHeroReadouts(estado) {
   document.getElementById("status-cota").innerHTML = `<span style="color:${COLOR_STATUS[estado.alertaCota]}">● Alerta ${LABEL_ESTADO[estado.alertaCota]}</span>`;
   const cotaRateUp = estado.tendenciaCota >= 0;
   document.getElementById("chip-cota-rate").innerHTML =
-    `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m</span>`;
+    `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m (día)</span>`;
+
+  const vsHoyCota = document.getElementById("chip-cota-vshoy");
+  if (estado.n > 0) {
+    const up = estado.diffHoyCota >= 0;
+    vsHoyCota.innerHTML = `<span class="stat-chip ${up ? "rate-up" : "rate-down"}" title="Diferencia entre el último dato de hoy y el cierre de ${etiquetaVentana(estado.n)}">${up ? "▲" : "▼"} ${fmt(Math.abs(estado.diffHoyCota), 2)} m vs. hoy</span>`;
+  } else {
+    vsHoyCota.innerHTML = "";
+  }
 
   document.getElementById("rv-vu").textContent = fmt(estado.vu, 0) + " hm³";
   document.getElementById("status-vu").innerHTML = `<span style="color:${COLOR_STATUS[estado.alertaVU]}">● Alerta ${LABEL_ESTADO[estado.alertaVU]}</span>`;
   const vuRateUp = estado.tendenciaVU >= 0;
   document.getElementById("chip-vu-pct").innerHTML = `<span class="stat-chip pct">${fmt(estado.pct, 1)}% útil</span>`;
   document.getElementById("chip-vu-rate").innerHTML =
-    `<span class="stat-chip ${vuRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${vuRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaVU), 1)} hm³</span>`;
+    `<span class="stat-chip ${vuRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${vuRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaVU), 1)} hm³ (día)</span>`;
+
+  const vsHoyVu = document.getElementById("chip-vu-vshoy");
+  if (estado.n > 0) {
+    const up = estado.diffHoyVU >= 0;
+    vsHoyVu.innerHTML = `<span class="stat-chip ${up ? "rate-up" : "rate-down"}" title="Diferencia entre el último dato de hoy y el cierre de ${etiquetaVentana(estado.n)}">${up ? "▲" : "▼"} ${fmt(Math.abs(estado.diffHoyVU), 1)} hm³ vs. hoy</span>`;
+  } else {
+    vsHoyVu.innerHTML = "";
+  }
 
   const r = DATA.reporte_actual;
   const oniColor = r.oni.oni_ultimo >= DATA.umbral_oni ? "var(--nino)" : r.oni.oni_ultimo <= -DATA.umbral_oni ? "var(--nina)" : "var(--neutral-phase)";
