@@ -88,6 +88,8 @@
   h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.08; letter-spacing: -0.015em; margin: 6px 0 8px; text-wrap: balance; font-weight: 800; }
   .sub { color: var(--muted); font-size: 15px; max-width: 62ch; }
   .header-inner { padding: 30px 0 26px; }
+  .header-top-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+  @media (max-width: 720px) { .header-top-row { align-items: flex-start; } }
 
   section { margin-top: 46px; }
   .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -185,8 +187,12 @@
   .recent-flow-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
   .rf-subtitle { font-size: 13px; color: var(--muted); max-width: 62ch; margin-top: 4px; }
   .ultima-lectura {
-    font-size: 12.5px; font-weight: 700; color: var(--accent-deep); background: var(--accent-wash);
-    padding: 6px 12px; border-radius: 8px; white-space: nowrap;
+    font-size: 18px; font-weight: 800; color: var(--accent-deep); background: var(--accent-wash);
+    padding: 12px 20px; border-radius: 10px; white-space: nowrap; font-family: ui-monospace, monospace;
+    max-width: 100%; box-sizing: border-box;
+  }
+  @media (max-width: 720px) {
+    .ultima-lectura { font-size: 13.5px; padding: 9px 14px; white-space: normal; }
   }
   .rf-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 14px 0 16px; font-size: 12.5px; color: var(--muted); }
   .rf-legend span { display: inline-flex; align-items: center; gap: 6px; }
@@ -216,9 +222,14 @@
 
 <header class="top">
   <div class="wrap header-inner">
-    <div class="eyebrow">Protocolo ENSO · Embalse Urrá · Fase VII</div>
-    <h1>¿Cómo afecta El Niño al embalse?</h1>
-    <p class="sub">Lectura operativa construida sobre 25 años de registros horarios reales del embalse (2001–<span id="anio-fin"></span>) y el índice ONI de la NOAA. Corte: <b id="fecha-corte" class="mono"></b>.</p>
+    <div class="header-top-row">
+      <div>
+        <div class="eyebrow">Protocolo ENSO · Embalse Urrá · Fase VII</div>
+        <h1>¿Cómo afecta El Niño al embalse?</h1>
+        <p class="sub">Lectura operativa construida sobre 25 años de registros horarios reales del embalse (2001–<span id="anio-fin"></span>) y el índice ONI de la NOAA. Corte: <b id="fecha-corte" class="mono"></b>.</p>
+      </div>
+      <div class="ultima-lectura" id="ultima-lectura"></div>
+    </div>
   </div>
 </header>
 
@@ -281,7 +292,6 @@
             <div class="rk">Caudal y niveles recientes</div>
             <div class="rf-subtitle">Últimos 30 días, día por día — contra lo normal históricamente <b>ese mes</b>, y lo normal en años El Niño / La Niña.</div>
           </div>
-          <div class="ultima-lectura" id="ultima-lectura"></div>
         </div>
         <div class="rf-legend" id="rf-legend"></div>
         <div class="rf-grid" id="rf-grid"></div>
