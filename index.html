@@ -198,6 +198,14 @@
   .rf-legend span { display: inline-flex; align-items: center; gap: 6px; }
   .rf-legend i { width: 14px; height: 0; border-top: 2.5px solid; display: inline-block; }
   .rf-legend i.dashed { border-top-style: dashed; }
+  .ah-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 12px 0 0; font-size: 12.5px; color: var(--muted); }
+  .ah-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .ah-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  /* En pantallas angostas el SVG nunca baja de 640px de ancho real -- se
+     desplaza horizontalmente en vez de encogerse hasta volverse ilegible
+     (30 columnas x 2 filas con etiquetas no caben bien en un telefono). */
+  .ah-scroll { overflow-x: auto; margin-top: 10px; }
+  .ah-scroll svg { display: block; width: 100%; min-width: 640px; height: auto; }
   .rf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
   .rf-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 10px; }
   .rf-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 2px; }
@@ -242,7 +250,7 @@
     <div class="ventana-bar">
       <span class="rk" style="margin-right:2px;">Ventana de análisis:</span>
       <div class="segmented" id="ventana-toggle">
-        <button data-n="30" class="active">30 días</button>
+        <button data-n="30">30 días</button>
         <button data-n="20">20 días</button>
         <button data-n="15">15 días</button>
         <button data-n="10">10 días</button>
@@ -251,7 +259,7 @@
         <button data-n="3">3 días</button>
         <button data-n="2">2 días</button>
         <button data-n="1">Ayer</button>
-        <button data-n="0">Hoy</button>
+        <button data-n="0" class="active">Hoy</button>
       </div>
     </div>
     <div class="panel">
@@ -283,6 +291,19 @@
           <div class="oni-status" id="oni-status"></div>
           <div class="oni-sub" id="oni-sub"></div>
           <div class="oni-note">Índice mensual — no varía con la ventana de días.</div>
+        </div>
+      </div>
+
+      <div class="recent-flow">
+        <div class="recent-flow-head">
+          <div>
+            <div class="rk">Historial de alertas — últimos 30 días</div>
+            <div class="rf-subtitle">Un color por día: la alerta con la que cerró la cota y el volumen útil ese día. Pasa el cursor sobre un día para ver el detalle.</div>
+          </div>
+        </div>
+        <div class="ah-legend" id="ah-legend"></div>
+        <div class="ah-scroll">
+          <svg id="chart-alert-history" viewBox="0 0 1040 108" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
       </div>
 
@@ -442,7 +463,7 @@ document.getElementById("nmit-val").textContent = fmt(DATA.niveles_referencia.NM
 
 /* ---------------------------------------------------------------- estado segun dia seleccionado (SIN promediar) */
 const CIERRES_DIARIOS = DATA.cierres_diarios; // dias_atras 1..31, cierre real de cada dia
-let ventanaDias = 30; // 0 = "hoy" (ultimo dato horario); N = cierre real de hace N dias
+let ventanaDias = 0; // 0 = "hoy" (ultimo dato horario, vista por defecto); N = cierre real de hace N dias
 
 function clasificarAlertaJS(valor, fila) {
   if (valor < fila.umbral_rojo_P10) return "ROJO";
@@ -519,84 +540,99 @@ function etiquetaVentana(n) {
  * refTicks: [[etiqueta, valor, texto|null], ...] marcas fijas al lado izquierdo
  *   del tanque (si texto es null, solo se dibuja la marca punteada, sin rotulo).
  */
+/**
+ * Gauge de "tanque" unificado: las 4 zonas de alerta (rojo/naranja/amarillo/
+ * verde) viven DENTRO del propio tanque, como bandas de fondo detras del
+ * agua -- no como una barra separada al lado. Un mismo vistazo responde
+ * "cuanto hay" y "en que zona esta" a la vez, sin tener que comparar dos
+ * figuras distintas. Graduaciones de las fronteras de zona a la derecha,
+ * referencias operativas fijas (NMIF/NMIT/etc.) a la izquierda.
+ */
 function renderTankGauge(svgId, valorActual, yDomain, zonas, refTicks, decimales, unidad) {
   const svg = document.getElementById(svgId);
   svg.innerHTML = "";
-  const tankX = 50, tankW = 78, top = 26, bottom = 386;
+  const tankX = 58, tankW = 116, top = 22, bottom = 388, rx = 18;
   const y = scaleLinear(yDomain, [bottom, top]);
 
   const clipId = svgId + "Clip";
   const defs = svgEl("defs", {});
   const clip = svgEl("clipPath", { id: clipId });
-  clip.appendChild(svgEl("rect", { x: tankX, y: top, width: tankW, height: bottom - top, rx: 14 }));
+  clip.appendChild(svgEl("rect", { x: tankX, y: top, width: tankW, height: bottom - top, rx }));
   defs.appendChild(clip);
+  const shadowId = svgId + "Shadow";
+  const filter = svgEl("filter", { id: shadowId, x: "-40%", y: "-40%", width: "180%", height: "180%" });
+  filter.appendChild(svgEl("feDropShadow", { dx: 0, dy: 1.5, stdDeviation: 2, "flood-opacity": 0.28 }));
+  defs.appendChild(filter);
   svg.appendChild(defs);
 
-  // barra de alerta junto al tanque, con los valores que definen cada frontera
-  const rulerX = tankX + tankW + 24, rulerW = 24;
+  const zonasGroup = svgEl("g", { "clip-path": `url(#${clipId})` });
   zonas.forEach(z => {
-    svg.appendChild(svgEl("rect", {
-      x: rulerX, y: y(z.to), width: rulerW, height: Math.max(0, y(z.from) - y(z.to)),
-      fill: z.color, opacity: 0.85, rx: 4,
+    zonasGroup.appendChild(svgEl("rect", {
+      x: tankX, y: y(z.to), width: tankW, height: Math.max(0, y(z.from) - y(z.to)),
+      fill: z.color, opacity: 0.24,
     }));
   });
-  svg.appendChild(svgEl("rect", { x: rulerX, y: top, width: rulerW, height: bottom - top, rx: 4, fill: "none", stroke: "var(--line-strong)", "stroke-width": 1 }));
-  zonas.slice(0, -1).forEach(z => {
-    const fy = y(z.to);
-    svg.appendChild(svgEl("line", { x1: rulerX, x2: rulerX + rulerW + 5, y1: fy, y2: fy, stroke: "var(--panel)", "stroke-width": 1.5 }));
-    const t = svgEl("text", { x: rulerX + rulerW + 7, y: fy + 3.5, "text-anchor": "start", "font-size": "9.5", "font-weight": "700", class: "mono" });
-    t.textContent = fmt(z.to, decimales); t.setAttribute("fill", "var(--muted)");
-    svg.appendChild(t);
-  });
+  svg.appendChild(zonasGroup);
 
-  // tanque
-  svg.appendChild(svgEl("rect", { x: tankX, y: top, width: tankW, height: bottom - top, rx: 14, fill: "var(--panel)", stroke: "var(--line-strong)", "stroke-width": 2.5 }));
-
-  const waterGroup = svgEl("g", { "clip-path": `url(#${clipId})` });
   const valY = y(valorActual);
+  const waterGroup = svgEl("g", { "clip-path": `url(#${clipId})` });
   const wavePath = `M ${tankX - 20} ${valY}
-    C ${tankX + 4} ${valY - 8}, ${tankX + 26} ${valY + 8}, ${tankX + tankW / 2} ${valY}
-    S ${tankX + tankW + 2} ${valY - 8}, ${tankX + tankW + 20} ${valY}
+    C ${tankX + 8} ${valY - 8}, ${tankX + 38} ${valY + 8}, ${tankX + tankW / 2} ${valY}
+    S ${tankX + tankW - 8} ${valY - 8}, ${tankX + tankW + 20} ${valY}
     L ${tankX + tankW + 20} ${bottom + 10} L ${tankX - 20} ${bottom + 10} Z`;
-  waterGroup.appendChild(svgEl("path", { d: wavePath, fill: "var(--accent)", opacity: 0.8 }));
+  waterGroup.appendChild(svgEl("path", { d: wavePath, fill: "var(--accent)", opacity: 0.82 }));
   const waveInner = svgEl("g", { class: "wave-anim" });
-  waveInner.appendChild(svgEl("path", { d: wavePath, fill: "var(--accent)", opacity: 0.35 }));
+  waveInner.appendChild(svgEl("path", { d: wavePath, fill: "var(--accent)", opacity: 0.32 }));
   waterGroup.appendChild(waveInner);
   svg.appendChild(waterGroup);
 
-  svg.appendChild(svgEl("rect", { x: tankX, y: top, width: tankW, height: bottom - top, rx: 14, fill: "none", stroke: "var(--line-strong)", "stroke-width": 2.5 }));
+  // marco nitido sobre zonas + agua (unico borde del tanque, ya no hay barra aparte)
+  svg.appendChild(svgEl("rect", {
+    x: tankX, y: top, width: tankW, height: bottom - top, rx,
+    fill: "none", stroke: "var(--line-strong)", "stroke-width": 2.5,
+  }));
 
-  // marcas de referencia fijas, al lado izquierdo del tanque
+  // referencias operativas fijas, a la izquierda (NMIF/NMIT/NMAX_OPER o volumen muerto/max. operacion)
   refTicks.forEach(([label, val, texto]) => {
     const ty = y(val);
-    const lineAttrs = { x1: tankX - 6, x2: tankX, y1: ty, y2: ty, stroke: "var(--faint)" };
+    const lineAttrs = { x1: tankX - 7, x2: tankX, y1: ty, y2: ty, stroke: "var(--faint)" };
     if (texto) { lineAttrs["stroke-width"] = 1.3; } else { lineAttrs["stroke-width"] = 1; lineAttrs["stroke-dasharray"] = "2 2"; }
     svg.appendChild(svgEl("line", lineAttrs));
     if (!texto) return;
-    const t = svgEl("text", { x: tankX - 10, y: ty + 3.5, "text-anchor": "end", "font-size": "9.5", class: "mono" });
+    const t = svgEl("text", { x: tankX - 11, y: ty + 3.5, "text-anchor": "end", "font-size": "9.5", class: "mono" });
     t.textContent = fmt(val, decimales); t.setAttribute("fill", "var(--faint)");
     svg.appendChild(t);
-    const lab = svgEl("text", { x: tankX - 10, y: ty - 5, "text-anchor": "end", "font-size": "8" });
+    const lab = svgEl("text", { x: tankX - 11, y: ty - 5, "text-anchor": "end", "font-size": "8" });
     lab.textContent = texto; lab.setAttribute("fill", "var(--faint)");
     svg.appendChild(lab);
   });
 
-  // linea del valor actual, atravesando tanque + barra de alerta
-  svg.appendChild(svgEl("line", { x1: tankX, x2: rulerX + rulerW, y1: valY, y2: valY, stroke: "var(--ink)", "stroke-width": 1.6, "stroke-dasharray": "3 3", opacity: 0.8 }));
+  // graduaciones de las fronteras de zona, a la derecha del tanque
+  const rightX = tankX + tankW;
+  zonas.slice(0, -1).forEach(z => {
+    const fy = y(z.to);
+    svg.appendChild(svgEl("line", { x1: rightX, x2: rightX + 7, y1: fy, y2: fy, stroke: "var(--muted)", "stroke-width": 1.3 }));
+    const t = svgEl("text", { x: rightX + 10, y: fy + 3.5, "text-anchor": "start", "font-size": "9.5", "font-weight": "700", class: "mono" });
+    t.textContent = fmt(z.to, decimales); t.setAttribute("fill", "var(--muted)");
+    svg.appendChild(t);
+  });
+
+  // linea del valor actual, atravesando el ancho del tanque
+  svg.appendChild(svgEl("line", { x1: tankX, x2: rightX, y1: valY, y2: valY, stroke: "var(--ink)", "stroke-width": 1.6, "stroke-dasharray": "3 3", opacity: 0.85 }));
 
   // placa con el valor actual y su unidad, sobre la linea de agua.
-  // El ancho se calcula segun el largo real del texto (monoespaciado a 11.5px)
+  // El ancho se calcula segun el largo real del texto (monoespaciado a 12.5px)
   // para que nunca quede mas angosta que el contenido y el texto se desborde.
   const textoPill = `${fmt(valorActual, decimales)} ${unidad}`;
-  const pillW = textoPill.length * 7.1 + 16, pillH = 20;
-  const pillY = Math.min(Math.max(valY - pillH / 2, top + 2), bottom - pillH - 2);
+  const pillW = textoPill.length * 7.7 + 18, pillH = 23;
+  const pillY = Math.min(Math.max(valY - pillH / 2, top + 4), bottom - pillH - 4);
   svg.appendChild(svgEl("rect", {
-    x: tankX + tankW / 2 - pillW / 2, y: pillY, width: pillW, height: pillH, rx: 6,
-    fill: "var(--panel)", stroke: "var(--ink)", "stroke-width": 1.2,
+    x: tankX + tankW / 2 - pillW / 2, y: pillY, width: pillW, height: pillH, rx: 7,
+    fill: "var(--panel)", stroke: "var(--ink)", "stroke-width": 1.3, filter: `url(#${shadowId})`,
   }));
   const valLabel = svgEl("text", {
-    x: tankX + tankW / 2, y: pillY + pillH / 2 + 4, "text-anchor": "middle",
-    "font-size": "11.5", "font-weight": "800", class: "mono",
+    x: tankX + tankW / 2, y: pillY + pillH / 2 + 4.5, "text-anchor": "middle",
+    "font-size": "12.5", "font-weight": "800", class: "mono",
   });
   valLabel.textContent = textoPill;
   valLabel.setAttribute("fill", "var(--ink)");
@@ -855,6 +891,70 @@ function renderMiniChart(meta) {
   overlay.addEventListener("mouseleave", () => { dot.setAttribute("opacity", 0); hideTip(); });
 
   document.getElementById(`rf-val-${meta.key}`).textContent = fmt(ultimo.valor, meta.dec) + " " + meta.unit;
+}
+
+/* ---------------------------------------------------------------- historial de alertas (30 dias fijos, cota + volumen) */
+function renderHistorialAlertas() {
+  const svg = document.getElementById("chart-alert-history");
+  svg.innerHTML = "";
+  const dias = CIERRES_DIARIOS.filter(c => c.dias_atras <= 30)
+    .slice().sort((a, b) => b.dias_atras - a.dias_atras); // mas antiguo -> mas reciente
+  if (dias.length === 0) return;
+
+  const W = 1040, H = 108;
+  const labelW = 128, rightPad = 4, cellGap = 3;
+  const cellsW = W - labelW - rightPad;
+  const cellW = (cellsW - cellGap * (dias.length - 1)) / dias.length;
+  const rowH = 32, rowGap = 12, top = 10;
+  const filas = [
+    { y: top, campo: "cota_alerta", etiqueta: "Cota del embalse", valor: d => `${fmt(d.nivel, 2)} msnm` },
+    { y: top + rowH + rowGap, campo: "volumen_util_alerta", etiqueta: "Volumen útil", valor: d => `${fmt(d.volumen_util_hm3, 2)} hm³` },
+  ];
+
+  filas.forEach(fila => {
+    const lab = svgEl("text", { x: 0, y: fila.y + rowH / 2 + 4, "font-size": "11.5", "font-weight": "700" });
+    lab.textContent = fila.etiqueta; lab.setAttribute("fill", "var(--muted)");
+    svg.appendChild(lab);
+
+    dias.forEach((d, i) => {
+      const cx = labelW + i * (cellW + cellGap);
+      const estado = d[fila.campo];
+      const rect = svgEl("rect", {
+        x: cx, y: fila.y, width: cellW, height: rowH, rx: 4,
+        fill: COLOR_STATUS[estado], opacity: 0.9,
+      });
+      svg.appendChild(rect);
+      rect.addEventListener("mouseenter", evt => {
+        rect.setAttribute("opacity", 1);
+        rect.setAttribute("stroke", "var(--ink)");
+        rect.setAttribute("stroke-width", 1.6);
+        showTip(`<b>${d.fecha}</b><div class="tt-row"><span>${fila.etiqueta}</span><b>${LABEL_ESTADO[estado]}</b></div><div class="tt-row"><span>Valor</span><b>${fila.valor(d)}</b></div>`, evt);
+      });
+      rect.addEventListener("mousemove", evt => moveTip(evt));
+      rect.addEventListener("mouseleave", () => {
+        rect.setAttribute("opacity", 0.9);
+        rect.removeAttribute("stroke");
+        hideTip();
+      });
+    });
+  });
+
+  const row2Bottom = top + 2 * rowH + rowGap;
+  const idxs = [...new Set([0, Math.floor((dias.length - 1) / 2), dias.length - 1])];
+  idxs.forEach(i => {
+    const cx = labelW + i * (cellW + cellGap) + cellW / 2;
+    const anchor = i === 0 ? "start" : i === dias.length - 1 ? "end" : "middle";
+    const t = svgEl("text", { x: cx, y: row2Bottom + 16, "text-anchor": anchor, "font-size": "10", class: "mono" });
+    t.textContent = dias[i].fecha.slice(5); t.setAttribute("fill", "var(--faint)");
+    svg.appendChild(t);
+  });
+}
+
+function initHistorialAlertas() {
+  document.getElementById("ah-legend").innerHTML = ["ROJO", "NARANJA", "AMARILLO", "VERDE"].map(k =>
+    `<span><i style="background:${COLOR_STATUS[k]}"></i>${LABEL_ESTADO[k]}</span>`
+  ).join("");
+  renderHistorialAlertas();
 }
 
 const prom_mes = DATA.promedios_mes_actual.mes;
@@ -1162,6 +1262,7 @@ function renderExplorer() {
 }
 
 renderOniDial();
-actualizarVentana(); // calcula el estado inicial (30 dias) y dispara el primer renderExplorer()
+actualizarVentana(); // calcula el estado inicial ("hoy") y dispara el primer renderExplorer()
+initHistorialAlertas();
 initRecienteGrid();
 </script>
