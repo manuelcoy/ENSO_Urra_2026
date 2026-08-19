@@ -297,7 +297,7 @@
       <div class="recent-flow">
         <div class="recent-flow-head">
           <div>
-            <div class="rk">Historial de alertas — últimos 30 días</div>
+            <div class="rk">Historial de alertas — hoy y últimos 30 días</div>
             <div class="rf-subtitle">Un color por día: la alerta con la que cerró la cota y el volumen útil ese día. Pasa el cursor sobre un día para ver el detalle.</div>
           </div>
         </div>
@@ -915,8 +915,18 @@ function renderMiniChart(meta) {
 function renderHistorialAlertas() {
   const svg = document.getElementById("chart-alert-history");
   svg.innerHTML = "";
-  const dias = CIERRES_DIARIOS.filter(c => c.dias_atras <= 30)
-    .slice().sort((a, b) => b.dias_atras - a.dias_atras); // mas antiguo -> mas reciente
+  // "Hoy" (dias_atras=0) se agrega aparte: no viene en CIERRES_DIARIOS (que
+  // arranca en "ayer"), y su alerta -- ya confirmada por persistencia -- es
+  // la misma que muestran los chips de "Situación actual" arriba, para que
+  // la celda mas reciente de este historial siempre coincida con ellos.
+  const hoyDato = DATA.ultimo_dato_horario, hoyReporte = DATA.reporte_actual;
+  const hoy = {
+    dias_atras: 0, fecha: hoyDato.fecha_hora.slice(0, 10), esHoy: true,
+    nivel: hoyDato.nivel, volumen_util_hm3: hoyDato.volumen_util_hm3,
+    cota_alerta: hoyReporte.cota_alerta, volumen_util_alerta: hoyReporte.volumen_util_alerta,
+  };
+  const dias = [...CIERRES_DIARIOS.filter(c => c.dias_atras <= 30), hoy]
+    .sort((a, b) => b.dias_atras - a.dias_atras); // mas antiguo -> mas reciente
   if (dias.length === 0) return;
 
   const W = 1040, H = 108;
@@ -946,7 +956,8 @@ function renderHistorialAlertas() {
         rect.setAttribute("opacity", 1);
         rect.setAttribute("stroke", "var(--ink)");
         rect.setAttribute("stroke-width", 1.6);
-        showTip(`<b>${d.fecha}</b><div class="tt-row"><span>${fila.etiqueta}</span><b>${LABEL_ESTADO[estado]}</b></div><div class="tt-row"><span>Valor</span><b>${fila.valor(d)}</b></div>`, evt);
+        const encabezado = d.esHoy ? `${d.fecha} · hoy` : d.fecha;
+        showTip(`<b>${encabezado}</b><div class="tt-row"><span>${fila.etiqueta}</span><b>${LABEL_ESTADO[estado]}</b></div><div class="tt-row"><span>Valor</span><b>${fila.valor(d)}</b></div>`, evt);
       });
       rect.addEventListener("mousemove", evt => moveTip(evt));
       rect.addEventListener("mouseleave", () => {
