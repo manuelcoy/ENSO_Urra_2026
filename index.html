@@ -909,7 +909,7 @@ const RF_VARS = [
   { key: "aportes", label: "Caudal afluente", unit: "m³/s", dec: 2,
     desc: "Agua que entra al embalse desde la cuenca del Sinú." },
   { key: "aportes_pct", label: "Caudal afluente (% del promedio)", unit: "%", dec: 0, pctBase: "aportes",
-    desc: "100% = promedio histórico de este mes (todos los años). Mismo dato que Caudal afluente, normalizado." },
+    desc: "100% = promedio histórico de este mes (todos los años). El punto de hoy es el promedio de las últimas 24h (no la lectura de la última hora), para ser comparable con un promedio mensual." },
   { key: "aguas_abajo", label: "Caudal aguas abajo", unit: "m³/s", dec: 2,
     desc: "Agua liberada del embalse: turbinada + vertida." },
   { key: "turbinado", label: "Turbinado (generación)", unit: "m³/s", dec: 2,
@@ -943,6 +943,19 @@ function renderMiniChart(meta) {
     const base = DATA.promedios_mes_actual[meta.pctBase] || {};
     if (base.todos == null) return;
     datos = serieRecienteVar(meta.pctBase).map(d => ({ ...d, valor: d.valor / base.todos * 100 }));
+    // El ultimo punto ("hoy") se reemplaza por el PROMEDIO de las ultimas
+    // 24h en vez de la lectura instantanea de la ultima hora: comparar un
+    // instante puntual contra un promedio MENSUAL no es comparable (un pico
+    // o valle de una sola hora puede no significar nada); el promedio de
+    // 24h si tiene el mismo tipo de suavizado que la referencia con la que
+    // se compara.
+    if (meta.pctBase === "aportes" && datos.length) {
+      const ultimas24h = DATA.serie_horaria_aportes.slice(-24).map(d => d.aportes).filter(v => v != null);
+      if (ultimas24h.length) {
+        const media24h = ultimas24h.reduce((a, b) => a + b, 0) / ultimas24h.length;
+        datos[datos.length - 1] = { ...datos[datos.length - 1], valor: media24h / base.todos * 100, esPromedio24h: true };
+      }
+    }
     prom = {
       todos: 100,
       nino: base.nino != null ? base.nino / base.todos * 100 : null,
@@ -1026,7 +1039,7 @@ function renderMiniChart(meta) {
     if (prom.todos != null) filas += `<div class="tt-row"><span>Prom. histórico de ${MESES_LARGO[prom_mes - 1]}</span><b>${fmt(prom.todos, meta.dec)} ${meta.unit}</b></div>`;
     if (prom.nino != null) filas += `<div class="tt-row"><span>Prom. en El Niño</span><b>${fmt(prom.nino, meta.dec)} ${meta.unit}</b></div>`;
     if (prom.nina != null) filas += `<div class="tt-row"><span>Prom. en La Niña</span><b>${fmt(prom.nina, meta.dec)} ${meta.unit}</b></div>`;
-    const encabezado = d.esHoy ? `${d.fecha} · hoy` : d.fecha;
+    const encabezado = d.esPromedio24h ? `${d.fecha} · promedio últimas 24h` : d.esHoy ? `${d.fecha} · hoy` : d.fecha;
     showTip(`<b>${encabezado}</b>${filas}`, evt);
   });
   overlay.addEventListener("mouseleave", () => { dot.setAttribute("opacity", 0); hideTip(); });
@@ -1180,9 +1193,22 @@ function renderAportesDetalle(horas) {
   // o La Nina" es todo ese rango). Se pintan como degradado entre el color
   // de cada linea, ordenadas por valor, para que el numero de bandas y sus
   // limites se ajusten solos si algun mes falta una fase de referencia.
-  if (refs.length >= 2) {
+  if (refs.length >= 1) {
     const defs = svgEl("defs", {});
     svg.appendChild(defs);
+
+    // Deficit: por debajo del promedio en años El Nino -- estar mas seco
+    // que lo tipico en El Nino ya es peor que "normal en El Nino", se
+    // marca en rojizo como zona de alerta (no un simple degradado de
+    // comparacion como las demas bandas).
+    const ninoRef = refs.find(r => r.color === "var(--nino)");
+    if (ninoRef) {
+      svg.appendChild(svgEl("rect", {
+        x: M.left, y: y(ninoRef.valor), width: W - M.left - M.right,
+        height: Math.max(0, y(yMin) - y(ninoRef.valor)), fill: cssVar("--critical"), opacity: 0.16,
+      }));
+    }
+
     const ordenados = [...refs].sort((a, b) => a.valor - b.valor);
     for (let i = 0; i < ordenados.length - 1; i++) {
       const abajo = ordenados[i], arriba = ordenados[i + 1];
@@ -1338,6 +1364,7 @@ function initAportesDetalle() {
     <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${MESES_LARGO[prom_mes - 1]}</span>
     <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
     <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
+    <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--critical);opacity:0.55;"></i>Déficit: por debajo del promedio en El Niño</span>
   `;
   renderAportesDetalle(ventanaAportesHoras);
 }
