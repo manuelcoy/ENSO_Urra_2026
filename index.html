@@ -197,6 +197,23 @@
   .wave-anim { animation: waveshift 7s ease-in-out infinite; }
   @keyframes waveshift { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
 
+  /* ---------------- hero de caudal afluente del mes (arriba de todo) ---------------- */
+  .hero-caudal-eyebrow { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+  .hero-caudal-panel { background: linear-gradient(175deg, var(--accent-wash), var(--panel) 46%); }
+  .hero-caudal-grid { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: center; }
+  @media (max-width: 860px) { .hero-caudal-grid { grid-template-columns: 1fr; } }
+  .hero-caudal-stat { display: flex; flex-direction: column; gap: 4px; }
+  .hero-caudal-pct { font-family: ui-monospace, monospace; font-weight: 800; font-size: 68px;
+    line-height: 1; letter-spacing: -0.02em; }
+  .hero-caudal-pct-label { font-size: 14.5px; color: var(--muted); font-weight: 600; }
+  .hero-caudal-abs { font-family: ui-monospace, monospace; font-size: 15px; color: var(--ink); font-weight: 700; margin-top: 10px; }
+  .hero-caudal-abs span { font-weight: 500; color: var(--muted); }
+  .hero-caudal-note { font-size: 12.5px; color: var(--faint); margin-top: 10px; max-width: 32ch; }
+  .hero-caudal-chart-wrap { min-width: 0; }
+  .hero-caudal-badge { display: inline-block; margin-top: 12px; padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; }
+
   /* ---------------- recent-flow: grid de mini-graficos ---------------- */
   .recent-flow { margin-top: 26px; padding-top: 22px; border-top: 1px dashed var(--line); }
   .recent-flow-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
@@ -267,6 +284,29 @@
 </header>
 
 <div class="wrap">
+
+  <section id="panel-caudal-mes" style="margin-top:30px;">
+    <div class="hero-caudal-eyebrow">Lo primero que hay que saber</div>
+    <div class="section-head">
+      <h2 id="caudal-mes-titulo">Caudal afluente — <span id="caudal-mes-nombre"></span></h2>
+      <div class="section-note">Se actualiza sola cada mes — hoy compara contra <span id="caudal-mes-nombre-note"></span>.</div>
+    </div>
+    <div class="panel hero-caudal-panel">
+      <div class="hero-caudal-grid">
+        <div class="hero-caudal-stat">
+          <div class="hero-caudal-pct" id="caudal-mes-pct"></div>
+          <div class="hero-caudal-pct-label">del promedio histórico de <span id="caudal-mes-nombre2"></span> (2001–<span id="caudal-mes-anio-hist"></span>)</div>
+          <div class="hero-caudal-abs" id="caudal-mes-abs"></div>
+          <div id="caudal-mes-badge"></div>
+          <div class="hero-caudal-note">Promedio de todos los días de <span id="caudal-mes-nombre3"></span> hasta hoy (incluye el día de hoy, con las horas reportadas). Se recalcula solo: siempre compara contra el mes en el que estemos.</div>
+        </div>
+        <div class="hero-caudal-chart-wrap">
+          <svg id="chart-caudal-mes" viewBox="0 0 1040 320" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+      <div class="rf-legend" id="caudal-mes-legend"></div>
+    </div>
+  </section>
 
   <section id="panel-hero" style="margin-top:34px;">
     <div class="section-head">
@@ -933,9 +973,7 @@ const MESES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "jul
 
 const RF_VARS = [
   { key: "aportes", label: "Caudal afluente", unit: "m³/s", dec: 2,
-    desc: "Agua que entra al embalse desde la cuenca del Sinú." },
-  { key: "aportes_pct", label: "Caudal afluente (% del promedio)", unit: "%", dec: 0, pctBase: "aportes",
-    desc: "100% = promedio histórico de este mes (todos los años). El punto de hoy es el promedio de las últimas 24h (no la lectura de la última hora), para ser comparable con un promedio mensual." },
+    desc: "Agua que entra al embalse desde la cuenca del Sinú. El % del promedio mensual se muestra en grande al inicio del tablero." },
   { key: "aguas_abajo", label: "Caudal aguas abajo", unit: "m³/s", dec: 2,
     desc: "Agua liberada del embalse: turbinada + vertida." },
   { key: "turbinado", label: "Turbinado (generación)", unit: "m³/s", dec: 2,
@@ -960,37 +998,8 @@ function serieRecienteVar(key) {
 function renderMiniChart(meta) {
   const svg = document.getElementById(`chart-rf-${meta.key}`);
   svg.innerHTML = "";
-  // Variante "% del promedio": mismo dato base, expresado como porcentaje
-  // del promedio historico de ESTE mes (100% = ese promedio, fijo para
-  // todo el grafico -- igual que las lineas de referencia de las demas
-  // mini-graficas, que tampoco varian dia a dia dentro de los 30 dias).
-  let datos, prom;
-  if (meta.pctBase) {
-    const base = DATA.promedios_mes_actual[meta.pctBase] || {};
-    if (base.todos == null) return;
-    datos = serieRecienteVar(meta.pctBase).map(d => ({ ...d, valor: d.valor / base.todos * 100 }));
-    // El ultimo punto ("hoy") se reemplaza por el PROMEDIO de las ultimas
-    // 24h en vez de la lectura instantanea de la ultima hora: comparar un
-    // instante puntual contra un promedio MENSUAL no es comparable (un pico
-    // o valle de una sola hora puede no significar nada); el promedio de
-    // 24h si tiene el mismo tipo de suavizado que la referencia con la que
-    // se compara.
-    if (meta.pctBase === "aportes" && datos.length) {
-      const ultimas24h = DATA.serie_horaria_aportes.slice(-24).map(d => d.aportes).filter(v => v != null);
-      if (ultimas24h.length) {
-        const media24h = ultimas24h.reduce((a, b) => a + b, 0) / ultimas24h.length;
-        datos[datos.length - 1] = { ...datos[datos.length - 1], valor: media24h / base.todos * 100, esPromedio24h: true };
-      }
-    }
-    prom = {
-      todos: 100,
-      nino: base.nino != null ? base.nino / base.todos * 100 : null,
-      nina: base.nina != null ? base.nina / base.todos * 100 : null,
-    };
-  } else {
-    datos = serieRecienteVar(meta.key);
-    prom = DATA.promedios_mes_actual[meta.key] || {};
-  }
+  const datos = serieRecienteVar(meta.key);
+  const prom = DATA.promedios_mes_actual[meta.key] || {};
   if (datos.length < 2) return;
 
   const refs = [
@@ -1065,7 +1074,7 @@ function renderMiniChart(meta) {
     if (prom.todos != null) filas += `<div class="tt-row"><span>Prom. histórico de ${MESES_LARGO[prom_mes - 1]}</span><b>${fmt(prom.todos, meta.dec)} ${meta.unit}</b></div>`;
     if (prom.nino != null) filas += `<div class="tt-row"><span>Prom. en El Niño</span><b>${fmt(prom.nino, meta.dec)} ${meta.unit}</b></div>`;
     if (prom.nina != null) filas += `<div class="tt-row"><span>Prom. en La Niña</span><b>${fmt(prom.nina, meta.dec)} ${meta.unit}</b></div>`;
-    const encabezado = d.esPromedio24h ? `${d.fecha} · promedio últimas 24h` : d.esHoy ? `${d.fecha} · hoy` : d.fecha;
+    const encabezado = d.esHoy ? `${d.fecha} · hoy` : d.fecha;
     showTip(`<b>${encabezado}</b>${filas}`, evt);
   });
   overlay.addEventListener("mouseleave", () => { dot.setAttribute("opacity", 0); hideTip(); });
@@ -1383,6 +1392,181 @@ function renderAportesDetalle(horas) {
   `;
 }
 
+/* ---------------------------------------------------------------- hero de caudal afluente del mes en curso */
+// Se autodetecta el mes/año a partir del ultimo dato horario real (nunca
+// hardcodeado): si hoy es 2-sep-2026, esto compara set-2026 contra el
+// historico de septiembre; si el corte avanza a octubre, se recalcula solo.
+function mesAnioActual() {
+  const [anio, mes] = DATA.ultimo_dato_horario.fecha_hora.slice(0, 7).split("-").map(Number);
+  return { anio, mes, prefijo: DATA.ultimo_dato_horario.fecha_hora.slice(0, 7) };
+}
+
+// Todos los dias YA CERRADOS de este mes (de CIERRES_DIARIOS, que llega
+// hasta 31 dias atras -- siempre alcanza para cubrir desde el dia 1 del mes
+// en curso, sea cual sea el dia de hoy) mas el dia de hoy (promedio parcial
+// de las horas ya reportadas, que es lo que trae ultimo_dato_horario).
+function serieMesActual() {
+  const { prefijo } = mesAnioActual();
+  const dias = CIERRES_DIARIOS.filter(c => c.fecha.slice(0, 7) === prefijo && c.aportes != null)
+    .slice().sort((a, b) => b.dias_atras - a.dias_atras); // mas antiguo -> mas reciente
+  const puntos = dias.map(c => ({ fecha: c.fecha, aportes: c.aportes, esHoy: false }));
+  const hoy = DATA.ultimo_dato_horario;
+  if (hoy.fecha_hora.slice(0, 7) === prefijo && hoy.aportes != null) {
+    puntos.push({ fecha: hoy.fecha_hora.slice(0, 10), aportes: hoy.aportes, esHoy: true });
+  }
+  return puntos;
+}
+
+function renderCaudalMesActual() {
+  const { mes, anio } = mesAnioActual();
+  const nombreMes = MESES_LARGO[mes - 1];
+  const nombreMesCap = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+  ["caudal-mes-nombre", "caudal-mes-nombre2", "caudal-mes-nombre3"].forEach(id => {
+    document.getElementById(id).textContent = id === "caudal-mes-nombre" ? `${nombreMesCap} ${anio}` : nombreMes;
+  });
+  document.getElementById("caudal-mes-nombre-note").textContent = `lo normal históricamente en ${nombreMes}`;
+  document.getElementById("caudal-mes-anio-hist").textContent = String(anio - 1);
+
+  const datos = serieMesActual();
+  const prom = DATA.promedios_mes_actual.mes === mes ? (DATA.promedios_mes_actual.aportes || {}) : {};
+  if (datos.length === 0 || prom.todos == null) return;
+
+  const valores = datos.map(d => d.aportes);
+  const promedioMesHastaHoy = valores.reduce((a, b) => a + b, 0) / valores.length;
+  const pct = promedioMesHastaHoy / prom.todos * 100;
+
+  const pctEl = document.getElementById("caudal-mes-pct");
+  pctEl.textContent = `${fmt(pct, 0)}%`;
+  pctEl.style.color = pct < 100 ? "var(--serious)" : "var(--good)";
+  document.getElementById("caudal-mes-abs").innerHTML =
+    `${fmt(promedioMesHastaHoy, 1)} m³/s <span>· promedio de ${datos.length} día${datos.length === 1 ? "" : "s"} · normal: ${fmt(prom.todos, 1)} m³/s</span>`;
+  const badge = document.getElementById("caudal-mes-badge");
+  if (prom.nino != null && promedioMesHastaHoy < prom.nino) {
+    badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--critical-wash);color:var(--critical);">Por debajo del promedio en años El Niño</span>`;
+  } else if (prom.nino != null) {
+    badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--warning-wash);color:var(--warning);">Por encima del promedio en años El Niño</span>`;
+  } else {
+    badge.innerHTML = "";
+  }
+
+  document.getElementById("caudal-mes-legend").innerHTML = `
+    <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--accent);"></i>Caudal afluente, promedio diario</span>
+    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${nombreMes}</span>
+    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
+    <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
+    <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--critical);opacity:0.55;"></i>Déficit: por debajo del promedio en El Niño</span>
+  `;
+
+  const svg = document.getElementById("chart-caudal-mes");
+  svg.innerHTML = "";
+  const refs = [
+    prom.todos != null ? { valor: prom.todos, color: "var(--neutral-phase)" } : null,
+    prom.nino != null ? { valor: prom.nino, color: "var(--nino)" } : null,
+    prom.nina != null ? { valor: prom.nina, color: "var(--nina)" } : null,
+  ].filter(Boolean);
+
+  const W = 1040, H = 320, M = { top: 16, right: 46, bottom: 30, left: 52 };
+  const diasEnMes = new Date(anio, mes, 0).getDate();
+  const x = scaleLinear([0.5, diasEnMes + 0.5], [M.left, W - M.right]);
+  const vals = valores.concat(refs.map(r => r.valor));
+  const yMax = Math.max(...vals) * 1.12;
+  const y = scaleLinear([0, yMax], [H - M.bottom, M.top]);
+  const barW = Math.max(4, Math.min(30, (W - M.left - M.right) / diasEnMes * 0.62));
+
+  // Banda de deficit por debajo del promedio en años El Nino, igual criterio
+  // visual que "Aportes en detalle" -- estar mas seco que lo tipico en un
+  // año El Nino ya es zona de alerta, no una simple banda de comparacion.
+  const ninoRef = refs.find(r => r.color === "var(--nino)");
+  if (ninoRef) {
+    svg.appendChild(svgEl("rect", {
+      x: M.left, y: y(ninoRef.valor), width: W - M.left - M.right,
+      height: Math.max(0, y(0) - y(ninoRef.valor)), fill: cssVar("--critical"), opacity: 0.1,
+    }));
+  }
+
+  [0, yMax / 2, yMax].forEach(v => {
+    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
+    const t = svgEl("text", { x: M.left - 8, y: y(v) + 3.5, "text-anchor": "end", "font-size": "10", class: "mono" });
+    t.textContent = fmt(v, 0); t.setAttribute("fill", "var(--faint)");
+    svg.appendChild(t);
+  });
+
+  refs.forEach(r => {
+    svg.appendChild(svgEl("line", {
+      x1: M.left, x2: W - M.right, y1: y(r.valor), y2: y(r.valor),
+      stroke: r.color, "stroke-width": 1.4, "stroke-dasharray": "5 3", opacity: 0.85,
+    }));
+  });
+  const etiquetas = refs.map(r => ({ ...r, ly: y(r.valor) })).sort((a, b) => a.ly - b.ly);
+  for (let i = 1; i < etiquetas.length; i++) {
+    if (etiquetas[i].ly - etiquetas[i - 1].ly < 11) etiquetas[i].ly = etiquetas[i - 1].ly + 11;
+  }
+  etiquetas.forEach(r => {
+    const t = svgEl("text", { x: W - M.right + 4, y: r.ly + 3.5, "font-size": "9.5", class: "mono", fill: r.color });
+    t.textContent = fmt(r.valor, 1);
+    svg.appendChild(t);
+  });
+
+  // Barras: un dia por barra (segun el DIA REAL de d.fecha, no el indice --
+  // si algun dia del mes faltara en el registro, esto evita que las barras
+  // siguientes se corran y queden mal rotuladas), redondeadas arriba, el
+  // dia de hoy resaltado con borde solido (todavia acumulando horas) y
+  // opacidad ligeramente menor en el resto para que "hoy" salte a la vista.
+  const porDia = new Map();
+  datos.forEach(d => porDia.set(Number(d.fecha.slice(8, 10)), d));
+  const bars = svgEl("g", {});
+  porDia.forEach((d, dia) => {
+    const bx = x(dia) - barW / 2, by = y(d.aportes), bh = Math.max(0, y(0) - by);
+    const bar = svgEl("rect", {
+      x: bx, y: by, width: barW, height: bh, rx: Math.min(4, barW / 3),
+      fill: "var(--accent)", opacity: d.esHoy ? 0.95 : 0.72,
+    });
+    if (d.esHoy) { bar.setAttribute("stroke", "var(--accent-deep)"); bar.setAttribute("stroke-width", "1.6"); }
+    bars.appendChild(bar);
+  });
+  svg.appendChild(bars);
+
+  // Dias del mes que aun no llegan (o que faltan en el registro): marcas
+  // fantasma en el eje, para que se entienda que el mes sigue en curso (no
+  // que "se acabaron los datos").
+  for (let dia = 1; dia <= diasEnMes; dia++) {
+    if (porDia.has(dia)) continue;
+    svg.appendChild(svgEl("line", { x1: x(dia), x2: x(dia), y1: y(0) - 3, y2: y(0) + 3, stroke: "var(--faint)", "stroke-width": 1 }));
+  }
+
+  const nTicks = Math.min(diasEnMes, 10);
+  const paso = Math.max(1, Math.round(diasEnMes / nTicks));
+  const idxTicks = new Set([1, diasEnMes]);
+  for (let d0 = paso; d0 < diasEnMes; d0 += paso) idxTicks.add(d0);
+  [...idxTicks].sort((a, b) => a - b).forEach(dia => {
+    const anchor = dia === 1 ? "start" : dia === diasEnMes ? "end" : "middle";
+    const t = svgEl("text", { x: x(dia), y: H - 6, "text-anchor": anchor, "font-size": "9.5", class: "mono" });
+    t.textContent = String(dia); t.setAttribute("fill", "var(--faint)");
+    svg.appendChild(t);
+  });
+
+  const overlay = svgEl("rect", { x: M.left, y: 0, width: Math.max(1, W - M.left - M.right), height: H, fill: "transparent" });
+  svg.appendChild(overlay);
+  overlay.addEventListener("mousemove", evt => {
+    const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+    const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    let dia = Math.round((loc.x - M.left) / (W - M.left - M.right) * diasEnMes);
+    dia = Math.max(1, Math.min(diasEnMes, dia));
+    const d = porDia.get(dia);
+    if (!d) { hideTip(); return; }
+    const fecha = new Date(d.fecha + "T00:00:00");
+    const fechaLbl = fecha.toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+    const pctDia = prom.todos ? d.aportes / prom.todos * 100 : null;
+    let filas = `<div class="tt-row"><span>Caudal afluente${d.esHoy ? " (hoy, parcial)" : ""}</span><b>${fmt(d.aportes, 2)} m³/s</b></div>`;
+    if (pctDia != null) filas += `<div class="tt-row"><span>% del promedio de ${nombreMes}</span><b>${fmt(pctDia, 0)}%</b></div>`;
+    if (prom.todos != null) filas += `<div class="tt-row"><span>Prom. histórico de ${nombreMes}</span><b>${fmt(prom.todos, 2)} m³/s</b></div>`;
+    if (prom.nino != null) filas += `<div class="tt-row"><span>Prom. en El Niño</span><b>${fmt(prom.nino, 2)} m³/s</b></div>`;
+    if (prom.nina != null) filas += `<div class="tt-row"><span>Prom. en La Niña</span><b>${fmt(prom.nina, 2)} m³/s</b></div>`;
+    showTip(`<b>${fechaLbl}</b>${filas}`, evt);
+  });
+  overlay.addEventListener("mouseleave", hideTip);
+}
+
 function initAportesDetalle() {
   document.getElementById("ad-legend").innerHTML = `
     <span><i style="border-top-color:var(--accent)"></i>Caudal afluente real</span>
@@ -1686,4 +1870,5 @@ actualizarVentana(); // calcula el estado inicial ("hoy") y dispara el primer re
 initHistorialAlertas();
 initRecienteGrid();
 initAportesDetalle();
+renderCaudalMesActual();
 </script>
