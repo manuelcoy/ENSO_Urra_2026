@@ -1,6 +1,41 @@
-<title>El Niño y el embalse Urrá — tablero operativo</title>
+<title>Registro Operativo Embalse Urrá</title>
+<meta property="og:title" content="Registro Operativo Embalse Urrá">
+<meta property="og:description" content="Análisis del registro operativo del embalse Urrá sobre 25 años de datos reales (2001–2026) y el índice ONI de la NOAA.">
+<meta name="twitter:card" content="summary">
 <style>
+  /* Tablero en modo oscuro fijo: fondo negro, sin importar la preferencia del
+     sistema. La paleta clara se conserva bajo [data-theme="light"] por si en
+     el futuro se anade un selector de tema. */
   :root {
+    --ink: #eaf2f1;
+    --paper: #000000;
+    --panel: #101c1f;
+    --line: #223133;
+    --line-strong: #33474a;
+    --muted: #9db0b1;
+    --faint: #71898b;
+    --accent: #22a6bb;
+    --accent-deep: #5fc2d4;
+    --accent-wash: #22a6bb22;
+    --nino: #e07a49;
+    --nino-wash: #e07a4926;
+    --nina: #5b93c9;
+    --nina-wash: #5b93c926;
+    --neutral-phase: #97a3a4;
+    --neutral-wash: #97a3a426;
+    --good: #3fb56c;
+    --good-wash: #3fb56c24;
+    --warning: #d3a53a;
+    --warning-wash: #d3a53a26;
+    --serious: #e08a4d;
+    --serious-wash: #e08a4d26;
+    --critical: #e2635d;
+    --critical-wash: #e2635d24;
+    --shadow: 0 1px 2px rgba(0,0,0,0.5), 0 8px 28px rgba(0,0,0,0.5);
+    color-scheme: dark;
+  }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  :root[data-theme="light"] {
     --ink: #0d1a1d;
     --paper: #f5f8f7;
     --panel: #ffffff;
@@ -28,47 +63,6 @@
     --shadow: 0 1px 2px rgba(13,26,29,0.06), 0 6px 20px rgba(13,26,29,0.06);
     color-scheme: light;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ink: #eaf2f1;
-      --paper: #0a1416;
-      --panel: #101c1f;
-      --line: #223133;
-      --line-strong: #33474a;
-      --muted: #9db0b1;
-      --faint: #71898b;
-      --accent: #22a6bb;
-      --accent-deep: #5fc2d4;
-      --accent-wash: #22a6bb22;
-      --nino: #e07a49;
-      --nino-wash: #e07a4926;
-      --nina: #5b93c9;
-      --nina-wash: #5b93c926;
-      --neutral-phase: #97a3a4;
-      --neutral-wash: #97a3a426;
-      --good: #3fb56c;
-      --good-wash: #3fb56c24;
-      --warning: #d3a53a;
-      --warning-wash: #d3a53a26;
-      --serious: #e08a4d;
-      --serious-wash: #e08a4d26;
-      --critical: #e2635d;
-      --critical-wash: #e2635d24;
-      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.35);
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --ink: #eaf2f1; --paper: #0a1416; --panel: #101c1f; --line: #223133; --line-strong: #33474a;
-    --muted: #9db0b1; --faint: #71898b; --accent: #22a6bb; --accent-deep: #5fc2d4; --accent-wash: #22a6bb22;
-    --nino: #e07a49; --nino-wash: #e07a4926; --nina: #5b93c9; --nina-wash: #5b93c926;
-    --neutral-phase: #97a3a4; --neutral-wash: #97a3a426; --good: #3fb56c; --good-wash: #3fb56c24;
-    --warning: #d3a53a; --warning-wash: #d3a53a26; --serious: #e08a4d; --serious-wash: #e08a4d26;
-    --critical: #e2635d; --critical-wash: #e2635d24;
-    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.35);
-    color-scheme: dark;
-  }
-  :root[data-theme="light"] { color-scheme: light; }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -275,7 +269,7 @@
     <div class="header-top-row">
       <div>
         <div class="eyebrow">Protocolo ENSO · Embalse Urrá · Fase VII</div>
-        <h1>¿Cómo afecta El Niño al embalse?</h1>
+        <h1>Análisis del registro operativo del embalse Urrá</h1>
         <p class="sub">Lectura operativa construida sobre 25 años de registros horarios reales del embalse (2001–<span id="anio-fin"></span>) y el índice ONI de la NOAA. Corte: <b id="fecha-corte" class="mono"></b>.</p>
       </div>
       <div class="ultima-lectura" id="ultima-lectura"></div>
