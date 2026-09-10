@@ -192,8 +192,6 @@
   @keyframes waveshift { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
 
   /* ---------------- hero de caudal afluente del mes (arriba de todo) ---------------- */
-  .hero-caudal-eyebrow { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
   .hero-caudal-panel { background: linear-gradient(175deg, var(--accent-wash), var(--panel) 46%); }
   .hero-caudal-grid { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: center; }
   @media (max-width: 860px) { .hero-caudal-grid { grid-template-columns: 1fr; } }
@@ -203,10 +201,19 @@
   .hero-caudal-pct-label { font-size: 14.5px; color: var(--muted); font-weight: 600; }
   .hero-caudal-abs { font-family: ui-monospace, monospace; font-size: 15px; color: var(--ink); font-weight: 700; margin-top: 10px; }
   .hero-caudal-abs span { font-weight: 500; color: var(--muted); }
-  .hero-caudal-note { font-size: 12.5px; color: var(--faint); margin-top: 10px; max-width: 32ch; }
+  .hero-caudal-note { font-size: 12px; color: var(--faint); margin-top: 10px; max-width: 34ch; }
   .hero-caudal-chart-wrap { min-width: 0; }
   .hero-caudal-badge { display: inline-block; margin-top: 12px; padding: 3px 10px; border-radius: 999px;
     font-size: 12px; font-weight: 700; }
+  .hero-caudal-trend { margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--line); }
+  .hero-caudal-trend:empty { display: none; }
+  .hero-caudal-trend-label { font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); font-weight: 700; }
+  .hero-caudal-trend-main { font-family: ui-monospace, monospace; font-weight: 800; font-size: 20px;
+    line-height: 1.15; margin-top: 3px; }
+  .hero-caudal-trend-main small { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .hero-caudal-trend-read { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.5; max-width: 40ch; }
+  .hero-caudal-trend-read i { color: var(--faint); font-style: normal; }
 
   /* ---------------- recent-flow: grid de mini-graficos ---------------- */
   .recent-flow { margin-top: 26px; padding-top: 22px; border-top: 1px dashed var(--line); }
@@ -280,10 +287,9 @@
 <div class="wrap">
 
   <section id="panel-caudal-mes" style="margin-top:30px;">
-    <div class="hero-caudal-eyebrow">Lo primero que hay que saber</div>
     <div class="section-head">
       <div>
-        <h2 id="caudal-mes-titulo">Caudal afluente — <span id="caudal-mes-nombre"></span></h2>
+        <h2 id="caudal-mes-titulo"><span class="letter">1</span>Caudal afluente — <span id="caudal-mes-nombre"></span></h2>
         <div class="section-note" id="caudal-mes-section-note"></div>
       </div>
       <select id="caudal-mes-select" aria-label="Elegir mes del año a mostrar"></select>
@@ -295,6 +301,7 @@
           <div class="hero-caudal-pct-label">del promedio histórico de <span id="caudal-mes-nombre2"></span> (2001–<span id="caudal-mes-anio-hist"></span>)</div>
           <div class="hero-caudal-abs" id="caudal-mes-abs"></div>
           <div id="caudal-mes-badge"></div>
+          <div class="hero-caudal-trend" id="caudal-mes-tendencia"></div>
           <div class="hero-caudal-note" id="caudal-mes-nota"></div>
         </div>
         <div class="hero-caudal-chart-wrap">
@@ -307,7 +314,7 @@
 
   <section id="panel-hero" style="margin-top:34px;">
     <div class="section-head">
-      <h2><span class="letter">1</span>Situación actual del embalse</h2>
+      <h2><span class="letter">2</span>Nivel de Alerta del embalse</h2>
     </div>
     <div class="ventana-bar">
       <span class="rk" style="margin-right:2px;">Ventana de análisis:</span>
@@ -416,7 +423,7 @@
 
   <section id="panel-ef">
     <div class="section-head">
-      <h2><span class="letter">2</span>Este mes, comparado con el historial</h2>
+      <h2><span class="letter">3</span>Este mes, comparado con el historial</h2>
       <div class="section-note">Elige la variable y el mes — por defecto, el mes en curso.</div>
     </div>
     <div class="panel">
@@ -464,7 +471,7 @@
 
   <section id="panel-a">
     <div class="section-head">
-      <h2><span class="letter">3</span>Índice ONI — episodios El Niño y La Niña</h2>
+      <h2><span class="letter">4</span>Índice ONI — episodios El Niño y La Niña</h2>
     </div>
     <div class="panel">
       <svg id="chart-oni" viewBox="0 0 1080 340" preserveAspectRatio="xMidYMid meet"></svg>
@@ -479,7 +486,7 @@
 
   <section id="panel-bc">
     <div class="section-head">
-      <h2><span class="letter">4</span>Qué tan grave fue cada episodio El Niño</h2>
+      <h2><span class="letter">5</span>Qué tan grave fue cada episodio El Niño</h2>
       <div class="section-note">El pico del ONI no ordena la severidad real: pasa el cursor por cada barra para ver la fecha exacta del mínimo y la velocidad de caída.</div>
     </div>
     <div class="grid2">
@@ -963,7 +970,7 @@ function renderHallazgo(estado) {
 }
 
 /* ---------------------------------------------------------------- caudal y niveles recientes (grid de mini-graficos) */
-// Independiente del selector de dia de la seccion 1 (ese es para "cual es la
+// Independiente del selector de dia de la seccion 2 (ese es para "cual es la
 // alerta declarada"; esto es contexto historico, siempre a 30 dias fijos).
 const MESES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
   "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -1429,6 +1436,103 @@ function promHistMes(mesSel) {
   return fila ? (fila.aportes || {}) : {};
 }
 
+// Tendencia del caudal afluente en los ultimos dias: ajuste lineal por minimos
+// cuadrados sobre los ultimos <=7 dias YA CERRADOS (se excluye el parcial de
+// hoy, que tiene menos horas y sesgaria la pendiente). Devuelve la pendiente
+// (m3/s por dia), el R2 del ajuste, la racha dia-a-dia en el mismo sentido, y
+// una marca de "estable" cuando el cambio no supera el ruido diario.
+function tendenciaReciente(datos) {
+  const cerrados = datos.filter(d => !d.esHoy);
+  const n = Math.min(7, cerrados.length);
+  if (n < 4) return null;
+  const win = cerrados.slice(-n);
+  const xs = win.map(d => Number(d.fecha.slice(8, 10)));
+  const ys = win.map(d => d.aportes);
+  const xm = xs.reduce((a, b) => a + b, 0) / n;
+  const ym = ys.reduce((a, b) => a + b, 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) {
+    sxy += (xs[i] - xm) * (ys[i] - ym);
+    sxx += (xs[i] - xm) ** 2;
+    syy += (ys[i] - ym) ** 2;
+  }
+  const b = sxx ? sxy / sxx : 0;
+  const a = ym - b * xm;
+  const r2 = (sxx && syy) ? (sxy * sxy) / (sxx * syy) : 0;
+  const ruido = Math.sqrt(syy / n);
+  // racha: dias consecutivos con variacion dia-a-dia del mismo signo, contando
+  // hacia atras desde el ultimo dia cerrado
+  const signo = Math.sign(b) || 1;
+  let racha = 0;
+  for (let i = cerrados.length - 1; i > 0; i--) {
+    const dif = cerrados[i].aportes - cerrados[i - 1].aportes;
+    if (dif !== 0 && Math.sign(dif) === signo) racha++; else break;
+  }
+  const estable = Math.abs(b) < 1.5 || (r2 < 0.25 && Math.abs(b) * n < 0.10 * ym);
+  return { n, b, a, r2, ruido, racha, estable, promRecientes: ym, xIni: xs[0], xFin: xs[n - 1] };
+}
+
+// Bloque de texto de la tendencia: cifra (m3/s por dia), lectura operativa con
+// el contexto ENSO vigente, y una proyeccion honesta (solo hacia un umbral
+// relevante y a <=3 semanas). Vacio si no hay tendencia calculable.
+function renderTendenciaCaudal(tr, prom, nombreMes) {
+  const el = document.getElementById("caudal-mes-tendencia");
+  if (!tr) { el.innerHTML = ""; return; }
+
+  const sube = tr.b > 0;
+  const cambioAbs = Math.abs(tr.b);
+  const pctDia = cambioAbs / prom.todos * 100;
+  const flecha = tr.estable ? "→" : (sube ? "▲" : "▼");
+  const color = tr.estable ? "var(--muted)" : (sube ? "var(--good)" : "var(--serious)");
+
+  const cifra = tr.estable
+    ? "estable"
+    : `${sube ? "+" : "−"}${fmt(cambioAbs, cambioAbs < 10 ? 1 : 0)} m³/s por día`;
+  const sub = tr.estable
+    ? `variación diaria dentro del ruido (±${fmt(tr.ruido, 0)} m³/s)`
+    : `≈ ${fmt(pctDia, 1)}%/día frente a lo normal de ${nombreMes}` +
+      (tr.racha >= 2 ? ` · ${sube ? "sube" : "baja"} ${tr.racha} días seguidos` : "");
+
+  let proy = "";
+  if (!tr.estable && tr.r2 >= 0.25) {
+    if (sube && tr.promRecientes < prom.todos) {
+      const d = (prom.todos - tr.promRecientes) / tr.b;
+      if (d > 0.5 && d <= 21) proy = ` De sostenerse el ritmo, cruzaría el promedio histórico de ${nombreMes} en ~${Math.round(d)} día${Math.round(d) === 1 ? "" : "s"}.`;
+    } else if (!sube && prom.nino != null && tr.promRecientes > prom.nino) {
+      const d = (tr.promRecientes - prom.nino) / cambioAbs;
+      if (d > 0.5 && d <= 21) proy = ` De sostenerse el ritmo, caería al promedio de años El Niño en ~${Math.round(d)} día${Math.round(d) === 1 ? "" : "s"}.`;
+    }
+  }
+
+  const oni = DATA.reporte_actual.oni || {};
+  const enNino = oni.episodio_nino_confirmado || (oni.oni_ultimo != null && oni.oni_ultimo >= (DATA.umbral_oni || 0.5));
+  const ctxNino = enNino ? ` con un episodio El Niño ${(oni.intensidad_actual || "").toLowerCase() || "activo"} en curso` : "";
+  const bajoNino = prom.nino != null && tr.promRecientes < prom.nino;
+
+  let lectura;
+  if (tr.estable) {
+    lectura = `El caudal se mantiene en torno a ${fmt(tr.promRecientes, 0)} m³/s, sin tendencia marcada.`;
+  } else if (sube) {
+    lectura = bajoNino
+      ? `Aportes recuperándose desde un nivel bajo, aún por debajo del patrón de años El Niño.`
+      : `Aportes en aumento, alejándose del piso de años El Niño.`;
+  } else {
+    lectura = bajoNino
+      ? `Aportes ya por debajo del promedio de años El Niño${ctxNino}: descenso a vigilar por su efecto sobre el volumen útil.`
+      : `Descenso dentro de lo estacional; el caudal sigue por encima del patrón de años El Niño.`;
+  }
+
+  const fit = tr.r2 >= 0.6 ? `R²=${fmt(tr.r2, 2)}`
+            : tr.r2 >= 0.25 ? `R²=${fmt(tr.r2, 2)}, dispersión moderada`
+            : `mucha dispersión día a día`;
+
+  el.innerHTML = `
+    <div class="hero-caudal-trend-label">Tendencia · últimos ${tr.n} días</div>
+    <div class="hero-caudal-trend-main" style="color:${color}">${flecha} ${cifra}<br><small>${sub}</small></div>
+    <div class="hero-caudal-trend-read">${lectura}${proy} <i>(ajuste lineal, ${fit}; estimación, no un pronóstico).</i></div>
+  `;
+}
+
 (function initCaudalMesSelect() {
   const sel = document.getElementById("caudal-mes-select");
   const { mes: mesActual } = mesAnioActual();
@@ -1455,7 +1559,7 @@ function renderCaudalMesActual(mesSel) {
   document.getElementById("caudal-mes-nombre2").textContent = nombreMes;
   document.getElementById("caudal-mes-anio-hist").textContent = String(anio - 1);
   document.getElementById("caudal-mes-section-note").textContent = esMesActual
-    ? `Mes en curso, se actualiza solo. Elige cualquier otro mes ya transcurrido de ${anio} en el selector.`
+    ? ""
     : `Mes completo de ${anio} — vuelve a "${MESES_LARGO[mesActual - 1]}" para ver el mes en curso.`;
 
   const datos = serieMes(mes);
@@ -1465,6 +1569,10 @@ function renderCaudalMesActual(mesSel) {
   const valores = datos.map(d => d.aportes);
   const promedioMes = valores.reduce((a, b) => a + b, 0) / valores.length;
   const pct = promedioMes / prom.todos * 100;
+
+  // Tendencia de los ultimos dias -- solo tiene sentido para el mes en curso.
+  const tr = esMesActual ? tendenciaReciente(datos) : null;
+  renderTendenciaCaudal(tr, prom, nombreMes);
 
   const pctEl = document.getElementById("caudal-mes-pct");
   pctEl.textContent = `${fmt(pct, 0)}%`;
@@ -1486,6 +1594,7 @@ function renderCaudalMesActual(mesSel) {
 
   document.getElementById("caudal-mes-legend").innerHTML = `
     <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--accent);"></i>Caudal afluente, promedio diario</span>
+    ${tr ? `<span><i style="width:16px;height:0;border:none;border-top:2px solid var(--ink);"></i>Tendencia lineal (${tr.n} días)</span>` : ""}
     <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${nombreMes}</span>
     <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
     <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
@@ -1503,7 +1612,11 @@ function renderCaudalMesActual(mesSel) {
   const W = 1040, H = 320, M = { top: 16, right: 46, bottom: 30, left: 52 };
   const diasEnMes = new Date(anio, mes, 0).getDate();
   const x = scaleLinear([0.5, diasEnMes + 0.5], [M.left, W - M.right]);
-  const vals = valores.concat(refs.map(r => r.valor));
+  const yTrend = tr ? (d => tr.a + tr.b * d) : null;
+  const diaProy = tr ? Math.min(diasEnMes, tr.xFin + 3) : null;
+  const vals = valores
+    .concat(refs.map(r => r.valor))
+    .concat(tr ? [yTrend(tr.xIni), yTrend(tr.xFin), Math.max(0, yTrend(diaProy))] : []);
   const yMax = Math.max(...vals) * 1.12;
   const y = scaleLinear([0, yMax], [H - M.bottom, M.top]);
   const barW = Math.max(4, Math.min(30, (W - M.left - M.right) / diasEnMes * 0.62));
@@ -1560,6 +1673,23 @@ function renderCaudalMesActual(mesSel) {
     bars.appendChild(bar);
   });
   svg.appendChild(bars);
+
+  // Recta de tendencia (ajuste lineal de los ultimos <=7 dias cerrados) +
+  // una proyeccion punteada de 3 dias -- estimacion visual, no pronostico.
+  if (tr) {
+    svg.appendChild(svgEl("line", {
+      x1: x(tr.xIni), y1: y(yTrend(tr.xIni)), x2: x(tr.xFin), y2: y(yTrend(tr.xFin)),
+      stroke: "var(--ink)", "stroke-width": 2, "stroke-linecap": "round", opacity: 0.92,
+    }));
+    if (diaProy > tr.xFin) {
+      svg.appendChild(svgEl("line", {
+        x1: x(tr.xFin), y1: y(yTrend(tr.xFin)),
+        x2: x(diaProy), y2: y(Math.max(0, yTrend(diaProy))),
+        stroke: "var(--ink)", "stroke-width": 1.6, "stroke-dasharray": "3 4", opacity: 0.45,
+      }));
+    }
+    svg.appendChild(svgEl("circle", { cx: x(tr.xFin), cy: y(yTrend(tr.xFin)), r: 3, fill: "var(--ink)" }));
+  }
 
   // Dias del mes que aun no llegan (o que faltan en el registro): marcas
   // fantasma en el eje, para que se entienda que el mes sigue en curso (no
@@ -1642,7 +1772,7 @@ document.querySelectorAll("#ventana-toggle button").forEach(btn => {
 });
 
 // Nota: la llamada inicial (renderOniDial + actualizarVentana) se dispara al
-// final del script, una vez definido VAR_META/renderExplorer (seccion 2).
+// final del script, una vez definido VAR_META/renderExplorer (seccion 3).
 
 /* ---------------------------------------------------------------- panel A: ONI timeline */
 (function renderOni() {
@@ -1893,7 +2023,7 @@ function renderExplorer() {
   const cap = document.getElementById("explorer-caption");
   const mesNombre = DATA.meses_nombre[explorerMes - 1];
   if (esMesActual) {
-    const notaVentana = ` (${ventanaDias === 0 ? "hoy" : "cierre de " + etiquetaVentana(ventanaDias)} — ajústalo en la sección 1)`;
+    const notaVentana = ` (${ventanaDias === 0 ? "hoy" : "cierre de " + etiquetaVentana(ventanaDias)} — ajústalo en la sección 2)`;
     cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. La línea negra es el valor <b>actual</b>${notaVentana} (${fmt(valActual, meta.dec)} ${meta.unit}) — compáralo contra la caja de "El Niño" para ver si ya estamos en el rango bajo típico de esos años.`;
   } else {
     cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. Elige el mes en curso en el selector para ver el valor actual superpuesto.`;
