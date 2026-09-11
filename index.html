@@ -31,6 +31,11 @@
     --serious-wash: #e08a4d26;
     --critical: #e2635d;
     --critical-wash: #e2635d24;
+    /* Generacion (turbinado) -- dorado/electrico, deliberadamente distinto del
+       ambar de --warning para que una linea de generacion en un grafico nunca
+       se confunda con un estado de alerta. */
+    --gen: #f0c419;
+    --gen-wash: #f0c41924;
     --shadow: 0 1px 2px rgba(0,0,0,0.5), 0 8px 28px rgba(0,0,0,0.5);
     color-scheme: dark;
   }
@@ -60,6 +65,8 @@
     --serious-wash: #d9762f22;
     --critical: #b8342f;
     --critical-wash: #b8342f1e;
+    --gen: #a5790a;
+    --gen-wash: #a5790a1a;
     --shadow: 0 1px 2px rgba(13,26,29,0.06), 0 6px 20px rgba(13,26,29,0.06);
     color-scheme: light;
   }
@@ -250,8 +257,7 @@
   .ah-scroll svg { display: block; width: 100%; min-width: 640px; height: auto; }
 
   /* ---------------- aportes en detalle (hora a hora) ---------------- */
-  .aportes-detalle .recent-flow-head { align-items: center; }
-  .ad-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 4px; }
+  .ad-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 4px; }
   .ad-stats .stat-chip { font-size: 13.5px; }
   .ad-stats .stat-chip-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--faint); font-weight: 700; display: block; margin-bottom: 2px; }
@@ -317,10 +323,40 @@
     </div>
   </section>
 
+  <section id="panel-aportes-detalle" style="margin-top:34px;">
+    <div class="section-head">
+      <div>
+        <h2><span class="letter">1</span>Aportes en detalle — hora a hora</h2>
+        <div class="section-note">Caudal afluente real, lectura por lectura, contra lo normal históricamente <b>este mes</b> y en años El Niño / La Niña / Neutral.</div>
+      </div>
+      <div class="segmented" id="aportes-ventana-toggle">
+        <button data-h="24" class="active">Últimas 24h</button>
+        <button data-h="120">Últimos 5 días</button>
+      </div>
+    </div>
+    <div class="panel hero-caudal-panel">
+      <div class="hero-caudal-topbar">
+        <div class="hero-caudal-stat">
+          <div class="hero-caudal-pct" id="ad-pct"></div>
+          <div class="hero-caudal-pct-label">del promedio histórico de <span id="ad-mes-nombre"></span> — última hora reportada</div>
+        </div>
+        <div class="hero-caudal-stat">
+          <div class="hero-caudal-abs" id="ad-abs"></div>
+          <div id="ad-badge"></div>
+        </div>
+      </div>
+      <div class="ad-stats" id="ad-stats"></div>
+      <div class="ad-scroll">
+        <svg id="chart-aportes-detalle" viewBox="0 0 1160 380" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="rf-legend" id="ad-legend"></div>
+    </div>
+  </section>
+
   <section id="panel-caudal-mes" style="margin-top:34px;">
     <div class="section-head">
       <div>
-        <h2 id="caudal-mes-titulo"><span class="letter">1</span>Caudal afluente — <span id="caudal-mes-nombre"></span></h2>
+        <h2 id="caudal-mes-titulo"><span class="letter">2</span>Caudal afluente — <span id="caudal-mes-nombre"></span></h2>
         <div class="section-note" id="caudal-mes-section-note"></div>
       </div>
       <select id="caudal-mes-select" aria-label="Elegir mes del año a mostrar"></select>
@@ -347,7 +383,7 @@
 
   <section id="panel-hero" style="margin-top:34px;">
     <div class="section-head">
-      <h2><span class="letter">2</span>Nivel de Alerta del embalse</h2>
+      <h2><span class="letter">3</span>Nivel de Alerta del embalse</h2>
     </div>
     <div class="ventana-bar">
       <span class="rk" style="margin-right:2px;">Ventana de análisis:</span>
@@ -408,24 +444,6 @@
         </div>
       </div>
 
-      <div class="recent-flow aportes-detalle">
-        <div class="recent-flow-head">
-          <div>
-            <div class="rk">Aportes en detalle — hora a hora</div>
-            <div class="rf-subtitle">Caudal afluente real, lectura por lectura, contra lo normal históricamente <b>este mes</b> y en años El Niño / La Niña / Neutral.</div>
-          </div>
-          <div class="segmented" id="aportes-ventana-toggle">
-            <button data-h="24" class="active">Últimas 24h</button>
-            <button data-h="120">Últimos 5 días</button>
-          </div>
-        </div>
-        <div class="ad-stats" id="ad-stats"></div>
-        <div class="ad-scroll">
-          <svg id="chart-aportes-detalle" viewBox="0 0 1040 260" preserveAspectRatio="xMidYMid meet"></svg>
-        </div>
-        <div class="rf-legend" id="ad-legend"></div>
-      </div>
-
       <div class="recent-flow">
         <div class="recent-flow-head">
           <div>
@@ -445,7 +463,7 @@
 
   <section id="panel-ef">
     <div class="section-head">
-      <h2><span class="letter">3</span>Este mes, comparado con el historial</h2>
+      <h2><span class="letter">4</span>Este mes, comparado con el historial</h2>
       <div class="section-note">Elige la variable y el mes — por defecto, el mes en curso.</div>
     </div>
     <div class="panel">
@@ -493,7 +511,7 @@
 
   <section id="panel-a">
     <div class="section-head">
-      <h2><span class="letter">4</span>Índice ONI — episodios El Niño y La Niña</h2>
+      <h2><span class="letter">5</span>Índice ONI — episodios El Niño y La Niña</h2>
     </div>
     <div class="panel">
       <svg id="chart-oni" viewBox="0 0 1080 340" preserveAspectRatio="xMidYMid meet"></svg>
@@ -508,7 +526,7 @@
 
   <section id="panel-bc">
     <div class="section-head">
-      <h2><span class="letter">5</span>Qué tan grave fue cada episodio El Niño</h2>
+      <h2><span class="letter">6</span>Qué tan grave fue cada episodio El Niño</h2>
       <div class="section-note">El pico del ONI no ordena la severidad real: pasa el cursor por cada barra para ver la fecha exacta del mínimo y la velocidad de caída.</div>
     </div>
     <div class="grid2">
@@ -992,7 +1010,7 @@ function renderHallazgo(estado) {
 }
 
 /* ---------------------------------------------------------------- caudal y niveles recientes (grid de mini-graficos) */
-// Independiente del selector de dia de la seccion 2 (ese es para "cual es la
+// Independiente del selector de dia de la seccion 3 (ese es para "cual es la
 // alerta declarada"; esto es contexto historico, siempre a 30 dias fijos).
 const MESES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
   "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -1241,7 +1259,7 @@ function renderAportesDetalle(horas) {
     prom.nina != null ? { valor: prom.nina, color: "var(--nina)" } : null,
   ].filter(Boolean);
 
-  const W = 1040, H = 260, M = { top: 16, right: 46, bottom: 30, left: 52 };
+  const W = 1160, H = 380, M = { top: 20, right: 52, bottom: 34, left: 58 };
   const x = scaleLinear([0, datos.length - 1], [M.left, W - M.right]);
   const valores = datos.map(d => d.aportes);
   const valoresTurb = datos.map(d => d.turbinado).filter(v => v != null);
@@ -1301,7 +1319,7 @@ function renderAportesDetalle(horas) {
 
   [yMin, (yMin + yMax) / 2, yMax].forEach(v => {
     svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
-    const t = svgEl("text", { x: M.left - 8, y: y(v) + 3.5, "text-anchor": "end", "font-size": "10", class: "mono" });
+    const t = svgEl("text", { x: M.left - 8, y: y(v) + 3.5, "text-anchor": "end", "font-size": "11", class: "mono" });
     t.textContent = fmt(v, 0); t.setAttribute("fill", "var(--faint)");
     svg.appendChild(t);
   });
@@ -1314,10 +1332,10 @@ function renderAportesDetalle(horas) {
   });
   const etiquetas = refs.map(r => ({ ...r, ly: y(r.valor) })).sort((a, b) => a.ly - b.ly);
   for (let i = 1; i < etiquetas.length; i++) {
-    if (etiquetas[i].ly - etiquetas[i - 1].ly < 11) etiquetas[i].ly = etiquetas[i - 1].ly + 11;
+    if (etiquetas[i].ly - etiquetas[i - 1].ly < 12) etiquetas[i].ly = etiquetas[i - 1].ly + 12;
   }
   etiquetas.forEach(r => {
-    const t = svgEl("text", { x: W - M.right + 4, y: r.ly + 3.5, "font-size": "9.5", class: "mono", fill: r.color });
+    const t = svgEl("text", { x: W - M.right + 4, y: r.ly + 3.5, "font-size": "10.5", class: "mono", fill: r.color });
     t.textContent = fmt(r.valor, 1);
     svg.appendChild(t);
   });
@@ -1347,12 +1365,12 @@ function renderAportesDetalle(horas) {
   });
   if (segActual.length) segmentosTurb.push(segActual.join(" "));
   segmentosTurb.forEach(seg => {
-    svg.appendChild(svgEl("path", { d: seg, fill: "none", stroke: "var(--muted)", "stroke-width": 1.6, opacity: 0.9 }));
+    svg.appendChild(svgEl("path", { d: seg, fill: "none", stroke: "var(--gen)", "stroke-width": 1.8, opacity: 0.95 }));
   });
   for (let i = datos.length - 1; i >= 0; i--) {
     if (datos[i].turbinado != null) {
       svg.appendChild(svgEl("circle", {
-        cx: x(i), cy: y(datos[i].turbinado), r: 3.5, fill: "var(--muted)", stroke: "var(--panel)", "stroke-width": 1.5,
+        cx: x(i), cy: y(datos[i].turbinado), r: 3.5, fill: "var(--gen)", stroke: "var(--panel)", "stroke-width": 1.5,
       }));
       break;
     }
@@ -1368,7 +1386,7 @@ function renderAportesDetalle(horas) {
       : fecha.toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit" }) + " " +
         fecha.toLocaleTimeString("es-CO", { hour: "2-digit", hour12: false }) + "h";
     const anchor = i === 0 ? "start" : i === datos.length - 1 ? "end" : "middle";
-    const t = svgEl("text", { x: x(i), y: H - 6, "text-anchor": anchor, "font-size": "9.5", class: "mono" });
+    const t = svgEl("text", { x: x(i), y: H - 8, "text-anchor": anchor, "font-size": "10.5", class: "mono" });
     t.textContent = label; t.setAttribute("fill", "var(--faint)");
     svg.appendChild(t);
   });
@@ -1379,7 +1397,7 @@ function renderAportesDetalle(horas) {
   svg.appendChild(vline);
   const overlay = svgEl("rect", { x: M.left, y: 0, width: Math.max(1, W - M.left - M.right), height: H, fill: "transparent" });
   svg.appendChild(overlay);
-  const dotTurb = svgEl("circle", { r: 4, fill: "var(--muted)", opacity: 0, stroke: "var(--panel)", "stroke-width": 1.5 });
+  const dotTurb = svgEl("circle", { r: 4, fill: "var(--gen)", opacity: 0, stroke: "var(--panel)", "stroke-width": 1.5 });
   svg.appendChild(dotTurb);
   overlay.addEventListener("mousemove", evt => {
     const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
@@ -1409,8 +1427,32 @@ function renderAportesDetalle(horas) {
 
   const s = statsVentanaAportes(datos);
   const up = s.tendencia >= 0;
+
+  // Hero: % del promedio historico del mes con el dato de la ULTIMA hora
+  // reportada (no el promedio de la ventana) -- "que tan normal es el
+  // reporte de ahora mismo", mismo criterio que el resumen de mas arriba.
+  const pctEl = document.getElementById("ad-pct");
+  document.getElementById("ad-mes-nombre").textContent = MESES_LARGO[prom_mes - 1];
+  if (prom.todos != null) {
+    const pct = s.actual / prom.todos * 100;
+    pctEl.textContent = `${fmt(pct, 0)}%`;
+    pctEl.style.color = pct < 100 ? "var(--serious)" : "var(--good)";
+  } else {
+    pctEl.textContent = "—";
+    pctEl.style.color = "var(--muted)";
+  }
+  document.getElementById("ad-abs").innerHTML =
+    `${fmt(s.actual, 1)} m³/s <span>· ${formatearFechaHora(datos[datos.length - 1].fecha_hora)}</span>`;
+  const badge = document.getElementById("ad-badge");
+  if (prom.nino != null && s.actual < prom.nino) {
+    badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--critical-wash);color:var(--critical);">Por debajo del promedio en años El Niño</span>`;
+  } else if (prom.nino != null) {
+    badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--warning-wash);color:var(--warning);">Por encima del promedio en años El Niño</span>`;
+  } else {
+    badge.innerHTML = "";
+  }
+
   document.getElementById("ad-stats").innerHTML = `
-    <div class="ad-stat"><span class="stat-chip-label">Ahora</span><span class="stat-chip pct">${fmt(s.actual, 1)} m³/s</span></div>
     <div class="ad-stat"><span class="stat-chip-label">Promedio ventana</span><span class="stat-chip neutral">${fmt(s.promedio, 1)} m³/s</span></div>
     <div class="ad-stat"><span class="stat-chip-label">Máximo</span><span class="stat-chip neutral">${fmt(s.maximo, 1)} m³/s</span></div>
     <div class="ad-stat"><span class="stat-chip-label">Mínimo</span><span class="stat-chip neutral">${fmt(s.minimo, 1)} m³/s</span></div>
@@ -1757,7 +1799,7 @@ function renderCaudalMesActual(mesSel) {
 function initAportesDetalle() {
   document.getElementById("ad-legend").innerHTML = `
     <span><i style="border-top-color:var(--accent)"></i>Caudal afluente real</span>
-    <span><i style="border-top-color:var(--muted)"></i>Turbinado real</span>
+    <span><i style="border-top-color:var(--gen)"></i>Turbinado real (generación)</span>
     <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${MESES_LARGO[prom_mes - 1]}</span>
     <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
     <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
@@ -1794,7 +1836,7 @@ document.querySelectorAll("#ventana-toggle button").forEach(btn => {
 });
 
 // Nota: la llamada inicial (renderOniDial + actualizarVentana) se dispara al
-// final del script, una vez definido VAR_META/renderExplorer (seccion 3).
+// final del script, una vez definido VAR_META/renderExplorer (seccion 4).
 
 /* ---------------------------------------------------------------- panel A: ONI timeline */
 (function renderOni() {
@@ -2045,7 +2087,7 @@ function renderExplorer() {
   const cap = document.getElementById("explorer-caption");
   const mesNombre = DATA.meses_nombre[explorerMes - 1];
   if (esMesActual) {
-    const notaVentana = ` (${ventanaDias === 0 ? "hoy" : "cierre de " + etiquetaVentana(ventanaDias)} — ajústalo en la sección 2)`;
+    const notaVentana = ` (${ventanaDias === 0 ? "hoy" : "cierre de " + etiquetaVentana(ventanaDias)} — ajústalo en la sección 3)`;
     cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. La línea negra es el valor <b>actual</b>${notaVentana} (${fmt(valActual, meta.dec)} ${meta.unit}) — compáralo contra la caja de "El Niño" para ver si ya estamos en el rango bajo típico de esos años.`;
   } else {
     cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. Elige el mes en curso en el selector para ver el valor actual superpuesto.`;
