@@ -257,6 +257,10 @@
   .ah-scroll svg { display: block; width: 100%; min-width: 640px; height: auto; }
 
   /* ---------------- aportes en detalle (hora a hora) ---------------- */
+  /* [hidden] tiene la misma especificidad que una clase y pierde si la clase
+     se declara despues (como aqui) -- sin este selector, el atributo hidden
+     de #cd-stats (se oculta en modo mensual) queda sin efecto visual. */
+  .ad-stats[hidden] { display: none; }
   .ad-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 4px; }
   .ad-stats .stat-chip { font-size: 13.5px; }
   .ad-stats .stat-chip-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em;
@@ -264,6 +268,15 @@
   .ad-stat { text-align: left; }
   .ad-scroll { overflow-x: auto; margin-top: 8px; }
   .ad-scroll svg { display: block; width: 100%; min-width: 720px; height: auto; }
+  /* ---------------- "asi esta el embalse ahora": solo valores, sin graficas --
+     las graficas de estas mismas 5 variables viven mas abajo, en su propio
+     cajon ("Graficas del reporte"). */
+  .valores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 22px 28px; }
+  .valor-item { border-left: 2px solid var(--line); padding-left: 14px; }
+  .valor-num { font-family: ui-monospace, monospace; font-size: 25px; font-weight: 800; color: var(--ink);
+    line-height: 1.2; margin-top: 4px; }
+  .valor-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+
   /* Cuadricula de "lo esencial del reporte": deliberadamente grande -- son las
      graficas que reemplazan tener que abrir el reporte de EMEC, asi que
      ocupan 2 columnas en vez de 3 (antes 280px minimo -> ahora 420px). */
@@ -309,12 +322,56 @@
 
 <div class="wrap">
 
-  <section id="panel-resumen" style="margin-top:30px;">
+  <section id="panel-valores" style="margin-top:30px;">
     <div class="section-head">
       <div>
         <div class="resumen-eyebrow">Reporte operativo · se actualiza cada hora</div>
-        <h2>Resumen del reporte horario</h2>
-        <div class="section-note">Cota, volumen útil, caudal afluente, agua liberada y generación — los mismos datos que trae el reporte de EMEC, ya comparados con lo normal de este mes. No hace falta abrirlo aparte.</div>
+        <h2>Así está el embalse ahora</h2>
+        <div class="section-note">Cota, volumen útil, caudal afluente, agua liberada y generación — el reporte de EMEC resumido en un vistazo. No hace falta abrirlo aparte.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="valores-grid" id="valores-grid"></div>
+    </div>
+  </section>
+
+  <section id="panel-caudal-detalle" style="margin-top:34px;">
+    <div class="section-head">
+      <div>
+        <h2><span class="letter">1</span>Caudal afluente <span id="cd-titulo"></span></h2>
+        <div class="section-note" id="cd-section-note"></div>
+      </div>
+      <select id="cd-select" aria-label="Elegir ventana de tiempo"></select>
+    </div>
+    <div class="panel hero-caudal-panel">
+      <div class="hero-caudal-topbar">
+        <div class="hero-caudal-stat">
+          <div class="hero-caudal-pct" id="cd-pct"></div>
+          <div class="hero-caudal-pct-label" id="cd-pct-label"></div>
+        </div>
+        <div class="hero-caudal-stat">
+          <div class="hero-caudal-abs" id="cd-abs"></div>
+          <div id="cd-badge"></div>
+        </div>
+        <div class="hero-caudal-trend" id="cd-tendencia"></div>
+      </div>
+      <div class="ad-stats" id="cd-stats"></div>
+      <div class="ad-scroll" id="cd-chart-hourly-wrap">
+        <svg id="chart-aportes-detalle" viewBox="0 0 1160 380" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="hero-caudal-chart-wrap" id="cd-chart-month-wrap" hidden>
+        <svg id="chart-caudal-mes" viewBox="0 0 1160 440" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="rf-legend" id="cd-legend"></div>
+      <div class="hero-caudal-note" id="cd-nota"></div>
+    </div>
+  </section>
+
+  <section id="panel-resumen" style="margin-top:34px;">
+    <div class="section-head">
+      <div>
+        <h2>Gráficas del reporte — últimos 30 días</h2>
+        <div class="section-note">Cota, volumen útil, caudal afluente, agua liberada y generación, día por día, contra lo normal de este mes.</div>
       </div>
     </div>
     <div class="panel">
@@ -323,67 +380,9 @@
     </div>
   </section>
 
-  <section id="panel-aportes-detalle" style="margin-top:34px;">
-    <div class="section-head">
-      <div>
-        <h2><span class="letter">1</span>Aportes en detalle — hora a hora</h2>
-        <div class="section-note">Caudal afluente real, lectura por lectura, contra lo normal históricamente <b>este mes</b> y en años El Niño / La Niña / Neutral.</div>
-      </div>
-      <div class="segmented" id="aportes-ventana-toggle">
-        <button data-h="24" class="active">Últimas 24h</button>
-        <button data-h="120">Últimos 5 días</button>
-      </div>
-    </div>
-    <div class="panel hero-caudal-panel">
-      <div class="hero-caudal-topbar">
-        <div class="hero-caudal-stat">
-          <div class="hero-caudal-pct" id="ad-pct"></div>
-          <div class="hero-caudal-pct-label">del promedio histórico de <span id="ad-mes-nombre"></span> — última hora reportada</div>
-        </div>
-        <div class="hero-caudal-stat">
-          <div class="hero-caudal-abs" id="ad-abs"></div>
-          <div id="ad-badge"></div>
-        </div>
-      </div>
-      <div class="ad-stats" id="ad-stats"></div>
-      <div class="ad-scroll">
-        <svg id="chart-aportes-detalle" viewBox="0 0 1160 380" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
-      <div class="rf-legend" id="ad-legend"></div>
-    </div>
-  </section>
-
-  <section id="panel-caudal-mes" style="margin-top:34px;">
-    <div class="section-head">
-      <div>
-        <h2 id="caudal-mes-titulo"><span class="letter">2</span>Caudal afluente — <span id="caudal-mes-nombre"></span></h2>
-        <div class="section-note" id="caudal-mes-section-note"></div>
-      </div>
-      <select id="caudal-mes-select" aria-label="Elegir mes del año a mostrar"></select>
-    </div>
-    <div class="panel hero-caudal-panel">
-      <div class="hero-caudal-topbar">
-        <div class="hero-caudal-stat">
-          <div class="hero-caudal-pct" id="caudal-mes-pct"></div>
-          <div class="hero-caudal-pct-label">del promedio histórico de <span id="caudal-mes-nombre2"></span> (2001–<span id="caudal-mes-anio-hist"></span>)</div>
-        </div>
-        <div class="hero-caudal-stat">
-          <div class="hero-caudal-abs" id="caudal-mes-abs"></div>
-          <div id="caudal-mes-badge"></div>
-        </div>
-        <div class="hero-caudal-trend" id="caudal-mes-tendencia"></div>
-      </div>
-      <div class="hero-caudal-chart-wrap">
-        <svg id="chart-caudal-mes" viewBox="0 0 1160 440" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
-      <div class="rf-legend" id="caudal-mes-legend"></div>
-      <div class="hero-caudal-note" id="caudal-mes-nota"></div>
-    </div>
-  </section>
-
   <section id="panel-hero" style="margin-top:34px;">
     <div class="section-head">
-      <h2><span class="letter">3</span>Nivel de Alerta del embalse</h2>
+      <h2><span class="letter">2</span>Nivel de Alerta del embalse</h2>
     </div>
     <div class="ventana-bar">
       <span class="rk" style="margin-right:2px;">Ventana de análisis:</span>
@@ -463,7 +462,7 @@
 
   <section id="panel-ef">
     <div class="section-head">
-      <h2><span class="letter">4</span>Este mes, comparado con el historial</h2>
+      <h2><span class="letter">3</span>Este mes, comparado con el historial</h2>
       <div class="section-note">Elige la variable y el mes — por defecto, el mes en curso.</div>
     </div>
     <div class="panel">
@@ -511,7 +510,7 @@
 
   <section id="panel-a">
     <div class="section-head">
-      <h2><span class="letter">5</span>Índice ONI — episodios El Niño y La Niña</h2>
+      <h2><span class="letter">4</span>Índice ONI — episodios El Niño y La Niña</h2>
     </div>
     <div class="panel">
       <svg id="chart-oni" viewBox="0 0 1080 340" preserveAspectRatio="xMidYMid meet"></svg>
@@ -526,7 +525,7 @@
 
   <section id="panel-bc">
     <div class="section-head">
-      <h2><span class="letter">6</span>Qué tan grave fue cada episodio El Niño</h2>
+      <h2><span class="letter">5</span>Qué tan grave fue cada episodio El Niño</h2>
       <div class="section-note">El pico del ONI no ordena la severidad real: pasa el cursor por cada barra para ver la fecha exacta del mínimo y la velocidad de caída.</div>
     </div>
     <div class="grid2">
@@ -1010,7 +1009,7 @@ function renderHallazgo(estado) {
 }
 
 /* ---------------------------------------------------------------- caudal y niveles recientes (grid de mini-graficos) */
-// Independiente del selector de dia de la seccion 3 (ese es para "cual es la
+// Independiente del selector de dia de la seccion 2 (ese es para "cual es la
 // alerta declarada"; esto es contexto historico, siempre a 30 dias fijos).
 const MESES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
   "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -1037,6 +1036,29 @@ function serieRecienteVar(key) {
   const hoy = DATA.ultimo_dato_horario;
   if (hoy[key] != null) puntos.push({ fecha: hoy.fecha_hora.slice(0, 10), valor: hoy[key], pct: hoy.pct_llenado, esHoy: true });
   return puntos;
+}
+
+// "Asi esta el embalse ahora": la misma info que RF_VARS pero SOLO el valor
+// (sin graficar) -- responde "que dice el reporte de esta hora" de un
+// vistazo, arriba de todo. Las graficas de estas mismas variables viven mas
+// abajo, en su propio cajon ("Graficas del reporte").
+function renderValoresGrid() {
+  document.getElementById("valores-grid").innerHTML = RF_VARS.map(v => {
+    const datos = serieRecienteVar(v.key);
+    if (!datos.length) return "";
+    const ultimo = datos[datos.length - 1];
+    const prom = DATA.promedios_mes_actual[v.key] || {};
+    const pctSufijo = v.key === "volumen_util_hm3" && ultimo.pct != null ? ` (${fmt(ultimo.pct, 1)}% útil)` : "";
+    const sub = prom.todos != null
+      ? `${fmt(ultimo.valor / prom.todos * 100, 0)}% de lo normal en ${MESES_LARGO[prom_mes - 1]}`
+      : "";
+    return `
+      <div class="valor-item">
+        <div class="rf-card-label">${v.label}</div>
+        <div class="valor-num">${fmt(ultimo.valor, v.dec)} ${v.unit}${pctSufijo}</div>
+        <div class="valor-sub">${sub}</div>
+      </div>`;
+  }).join("");
 }
 
 function renderMiniChart(meta) {
@@ -1247,6 +1269,20 @@ function statsVentanaAportes(datos) {
 let ventanaAportesHoras = 24;
 
 function renderAportesDetalle(horas) {
+  const nombreMes = MESES_LARGO[prom_mes - 1];
+  document.getElementById("cd-titulo").textContent = horas <= 24 ? "— últimas 24 horas" : "— últimos 5 días";
+  document.getElementById("cd-section-note").innerHTML =
+    `Caudal afluente real, lectura por lectura, contra lo normal históricamente <b>este mes</b> y en años El Niño / La Niña / Neutral.`;
+  document.getElementById("cd-nota").textContent = "";
+  document.getElementById("cd-legend").innerHTML = `
+    <span><i style="border-top-color:var(--accent)"></i>Caudal afluente real</span>
+    <span><i style="border-top-color:var(--gen)"></i>Turbinado real (generación)</span>
+    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${nombreMes}</span>
+    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
+    <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
+    <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--critical);opacity:0.55;"></i>Déficit: por debajo del promedio en El Niño</span>
+  `;
+
   const svg = document.getElementById("chart-aportes-detalle");
   svg.innerHTML = "";
   const datos = serieHorariaVentana(horas);
@@ -1431,8 +1467,8 @@ function renderAportesDetalle(horas) {
   // Hero: % del promedio historico del mes con el dato de la ULTIMA hora
   // reportada (no el promedio de la ventana) -- "que tan normal es el
   // reporte de ahora mismo", mismo criterio que el resumen de mas arriba.
-  const pctEl = document.getElementById("ad-pct");
-  document.getElementById("ad-mes-nombre").textContent = MESES_LARGO[prom_mes - 1];
+  const pctEl = document.getElementById("cd-pct");
+  document.getElementById("cd-pct-label").textContent = `del promedio histórico de ${nombreMes} — última hora reportada`;
   if (prom.todos != null) {
     const pct = s.actual / prom.todos * 100;
     pctEl.textContent = `${fmt(pct, 0)}%`;
@@ -1441,9 +1477,9 @@ function renderAportesDetalle(horas) {
     pctEl.textContent = "—";
     pctEl.style.color = "var(--muted)";
   }
-  document.getElementById("ad-abs").innerHTML =
+  document.getElementById("cd-abs").innerHTML =
     `${fmt(s.actual, 1)} m³/s <span>· ${formatearFechaHora(datos[datos.length - 1].fecha_hora)}</span>`;
-  const badge = document.getElementById("ad-badge");
+  const badge = document.getElementById("cd-badge");
   if (prom.nino != null && s.actual < prom.nino) {
     badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--critical-wash);color:var(--critical);">Por debajo del promedio en años El Niño</span>`;
   } else if (prom.nino != null) {
@@ -1452,7 +1488,7 @@ function renderAportesDetalle(horas) {
     badge.innerHTML = "";
   }
 
-  document.getElementById("ad-stats").innerHTML = `
+  document.getElementById("cd-stats").innerHTML = `
     <div class="ad-stat"><span class="stat-chip-label">Promedio ventana</span><span class="stat-chip neutral">${fmt(s.promedio, 1)} m³/s</span></div>
     <div class="ad-stat"><span class="stat-chip-label">Máximo</span><span class="stat-chip neutral">${fmt(s.maximo, 1)} m³/s</span></div>
     <div class="ad-stat"><span class="stat-chip-label">Mínimo</span><span class="stat-chip neutral">${fmt(s.minimo, 1)} m³/s</span></div>
@@ -1540,7 +1576,7 @@ function tendenciaReciente(datos) {
 // el contexto ENSO vigente, y una proyeccion honesta (solo hacia un umbral
 // relevante y a <=3 semanas). Vacio si no hay tendencia calculable.
 function renderTendenciaCaudal(tr, prom, nombreMes) {
-  const el = document.getElementById("caudal-mes-tendencia");
+  const el = document.getElementById("cd-tendencia");
   if (!tr) { el.innerHTML = ""; return; }
 
   const sube = tr.b > 0;
@@ -1597,32 +1633,14 @@ function renderTendenciaCaudal(tr, prom, nombreMes) {
   `;
 }
 
-(function initCaudalMesSelect() {
-  const sel = document.getElementById("caudal-mes-select");
-  const { mes: mesActual } = mesAnioActual();
-  for (let m = 1; m <= mesActual; m++) {
-    const opt = document.createElement("option");
-    opt.value = m;
-    opt.textContent = DATA.meses_nombre[m - 1];
-    if (m === mesActual) opt.selected = true;
-    sel.appendChild(opt);
-  }
-  sel.addEventListener("change", () => {
-    caudalMesSeleccionado = parseInt(sel.value, 10);
-    renderCaudalMesActual(caudalMesSeleccionado);
-  });
-})();
-
 function renderCaudalMesActual(mesSel) {
   const mes = mesSel || caudalMesSeleccionado;
   const { anio, mes: mesActual } = mesAnioActual();
   const esMesActual = mes === mesActual;
   const nombreMes = MESES_LARGO[mes - 1];
   const nombreMesCap = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
-  document.getElementById("caudal-mes-nombre").textContent = `${nombreMesCap} ${anio}`;
-  document.getElementById("caudal-mes-nombre2").textContent = nombreMes;
-  document.getElementById("caudal-mes-anio-hist").textContent = String(anio - 1);
-  document.getElementById("caudal-mes-section-note").textContent = esMesActual
+  document.getElementById("cd-titulo").textContent = `— ${nombreMesCap} ${anio}`;
+  document.getElementById("cd-section-note").textContent = esMesActual
     ? ""
     : `Mes completo de ${anio} — vuelve a "${MESES_LARGO[mesActual - 1]}" para ver el mes en curso.`;
 
@@ -1638,13 +1656,15 @@ function renderCaudalMesActual(mesSel) {
   const tr = esMesActual ? tendenciaReciente(datos) : null;
   renderTendenciaCaudal(tr, prom, nombreMes);
 
-  const pctEl = document.getElementById("caudal-mes-pct");
+  const pctEl = document.getElementById("cd-pct");
   pctEl.textContent = `${fmt(pct, 0)}%`;
   pctEl.style.color = pct < 100 ? "var(--serious)" : "var(--good)";
-  document.getElementById("caudal-mes-abs").innerHTML = esMesActual
+  document.getElementById("cd-pct-label").textContent =
+    `del promedio histórico de ${nombreMes} (2001–${anio - 1})`;
+  document.getElementById("cd-abs").innerHTML = esMesActual
     ? `${fmt(promedioMes, 1)} m³/s <span>· promedio de ${datos.length} día${datos.length === 1 ? "" : "s"} · normal: ${fmt(prom.todos, 1)} m³/s</span>`
     : `${fmt(promedioMes, 1)} m³/s <span>· promedio del mes completo · normal: ${fmt(prom.todos, 1)} m³/s</span>`;
-  const badge = document.getElementById("caudal-mes-badge");
+  const badge = document.getElementById("cd-badge");
   if (prom.nino != null && promedioMes < prom.nino) {
     badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--critical-wash);color:var(--critical);">Por debajo del promedio en años El Niño</span>`;
   } else if (prom.nino != null) {
@@ -1652,11 +1672,11 @@ function renderCaudalMesActual(mesSel) {
   } else {
     badge.innerHTML = "";
   }
-  document.getElementById("caudal-mes-nota").textContent = esMesActual
+  document.getElementById("cd-nota").textContent = esMesActual
     ? `Promedio de todos los días de ${nombreMes} hasta hoy (incluye el día de hoy, con las horas reportadas).`
     : `Promedio de los ${datos.length} días de ${nombreMes} de ${anio}.`;
 
-  document.getElementById("caudal-mes-legend").innerHTML = `
+  document.getElementById("cd-legend").innerHTML = `
     <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--accent);"></i>Caudal afluente, promedio diario</span>
     ${tr ? `<span><i style="width:16px;height:0;border:none;border-top:2px solid var(--ink);"></i>Tendencia lineal (${tr.n} días)</span>` : ""}
     <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${nombreMes}</span>
@@ -1796,25 +1816,44 @@ function renderCaudalMesActual(mesSel) {
   overlay.addEventListener("mouseleave", hideTip);
 }
 
-function initAportesDetalle() {
-  document.getElementById("ad-legend").innerHTML = `
-    <span><i style="border-top-color:var(--accent)"></i>Caudal afluente real</span>
-    <span><i style="border-top-color:var(--gen)"></i>Turbinado real (generación)</span>
-    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${MESES_LARGO[prom_mes - 1]}</span>
-    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
-    <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
-    <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--critical);opacity:0.55;"></i>Déficit: por debajo del promedio en El Niño</span>
-  `;
-  renderAportesDetalle(ventanaAportesHoras);
+// Un solo cajon para "Aportes en detalle" (hora a hora) y "Caudal afluente"
+// (dia a dia, mes elegido): un unico selector con las 2 ventanas horarias +
+// todos los meses ya transcurridos, y se intercambia el contenido (grafica,
+// leyenda, estadisticas, tendencia) segun lo elegido. Arranca en horario
+// (24h) porque es el pedido explicito por defecto.
+let cdModo = "h24";
+
+function initCdSelect() {
+  const sel = document.getElementById("cd-select");
+  const { anio, mes: mesActual } = mesAnioActual();
+  const opciones = [
+    { value: "h24", label: "Últimas 24 horas" },
+    { value: "h120", label: "Últimos 5 días" },
+  ];
+  for (let m = 1; m <= mesActual; m++) {
+    const nombre = MESES_LARGO[m - 1];
+    opciones.push({ value: String(m), label: `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${anio}` });
+  }
+  sel.innerHTML = opciones.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+  sel.value = cdModo;
+  sel.addEventListener("change", () => renderCd(sel.value));
 }
-document.querySelectorAll("#aportes-ventana-toggle button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#aportes-ventana-toggle button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    ventanaAportesHoras = parseInt(btn.dataset.h, 10);
+
+function renderCd(modo) {
+  cdModo = modo;
+  const esHoraria = modo.startsWith("h");
+  document.getElementById("cd-chart-hourly-wrap").hidden = !esHoraria;
+  document.getElementById("cd-chart-month-wrap").hidden = esHoraria;
+  document.getElementById("cd-stats").hidden = !esHoraria;
+  document.getElementById("cd-tendencia").hidden = esHoraria;
+  if (esHoraria) {
+    ventanaAportesHoras = modo === "h24" ? 24 : 120;
     renderAportesDetalle(ventanaAportesHoras);
-  });
-});
+  } else {
+    caudalMesSeleccionado = parseInt(modo, 10);
+    renderCaudalMesActual(caudalMesSeleccionado);
+  }
+}
 
 function actualizarVentana() {
   const estado = calcularEstado(ventanaDias);
@@ -1836,7 +1875,7 @@ document.querySelectorAll("#ventana-toggle button").forEach(btn => {
 });
 
 // Nota: la llamada inicial (renderOniDial + actualizarVentana) se dispara al
-// final del script, una vez definido VAR_META/renderExplorer (seccion 4).
+// final del script, una vez definido VAR_META/renderExplorer (seccion 3).
 
 /* ---------------------------------------------------------------- panel A: ONI timeline */
 (function renderOni() {
@@ -2087,7 +2126,7 @@ function renderExplorer() {
   const cap = document.getElementById("explorer-caption");
   const mesNombre = DATA.meses_nombre[explorerMes - 1];
   if (esMesActual) {
-    const notaVentana = ` (${ventanaDias === 0 ? "hoy" : "cierre de " + etiquetaVentana(ventanaDias)} — ajústalo en la sección 3)`;
+    const notaVentana = ` (${ventanaDias === 0 ? "hoy" : "cierre de " + etiquetaVentana(ventanaDias)} — ajústalo en la sección 2)`;
     cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. La línea negra es el valor <b>actual</b>${notaVentana} (${fmt(valActual, meta.dec)} ${meta.unit}) — compáralo contra la caja de "El Niño" para ver si ya estamos en el rango bajo típico de esos años.`;
   } else {
     cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. Elige el mes en curso en el selector para ver el valor actual superpuesto.`;
@@ -2097,7 +2136,8 @@ function renderExplorer() {
 renderOniDial();
 actualizarVentana(); // calcula el estado inicial ("hoy") y dispara el primer renderExplorer()
 initHistorialAlertas();
+renderValoresGrid();
 initRecienteGrid();
-initAportesDetalle();
-renderCaudalMesActual();
+initCdSelect();
+renderCd(cdModo);
 </script>
