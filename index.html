@@ -205,31 +205,28 @@
      alta ABAJO -- la grafica es la protagonista, no una columna al lado. */
   .hero-caudal-panel { background: linear-gradient(175deg, var(--accent-wash), var(--panel) 22%); }
   .hero-caudal-topbar {
-    display: flex; flex-wrap: wrap; align-items: flex-start; gap: 26px 34px;
-    padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px 34px;
+    padding-bottom: 16px; margin-bottom: 18px; border-bottom: 1px solid var(--line);
   }
   .hero-caudal-stat { display: flex; flex-direction: column; gap: 4px; }
   .hero-caudal-pct { font-family: ui-monospace, monospace; font-weight: 800; font-size: 64px;
     line-height: 1; letter-spacing: -0.02em; }
   .hero-caudal-pct-label { font-size: 14px; color: var(--muted); font-weight: 600; max-width: 26ch; }
-  .hero-caudal-abs { font-family: ui-monospace, monospace; font-size: 16px; color: var(--ink); font-weight: 700; }
+  /* Todo lo demas (valor absoluto, insignia, tendencia) va agrupado en una
+     sola columna angosta al lado del %, no repartido en varias columnas
+     anchas -- el % es el dato grande, esto es contexto de apoyo. */
+  .hero-caudal-details { display: flex; flex-direction: column; gap: 5px; flex: 1 1 320px; min-width: 240px; max-width: 46ch; }
+  .hero-caudal-abs { font-family: ui-monospace, monospace; font-size: 15px; color: var(--ink); font-weight: 700; }
   .hero-caudal-abs span { font-weight: 500; color: var(--muted); }
   .hero-caudal-note { font-size: 12px; color: var(--faint); margin-top: 14px; max-width: 74ch; }
   .hero-caudal-chart-wrap { min-width: 0; }
-  .hero-caudal-badge { display: inline-block; margin-top: 10px; padding: 3px 10px; border-radius: 999px;
+  .hero-caudal-badge { display: inline-block; padding: 3px 10px; border-radius: 999px;
     font-size: 12px; font-weight: 700; }
-  .hero-caudal-trend {
-    flex: 1 1 260px; min-width: 240px; padding-left: 28px; border-left: 1px solid var(--line);
-  }
-  .hero-caudal-trend:empty { display: none; padding: 0; border: none; }
-  @media (max-width: 720px) { .hero-caudal-trend { border-left: none; padding-left: 0; border-top: 1px dashed var(--line); padding-top: 16px; flex-basis: 100%; } }
-  .hero-caudal-trend-label { font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--faint); font-weight: 700; }
-  .hero-caudal-trend-main { font-family: ui-monospace, monospace; font-weight: 800; font-size: 20px;
-    line-height: 1.15; margin-top: 3px; }
-  .hero-caudal-trend-main small { font-size: 12px; font-weight: 600; color: var(--muted); }
-  .hero-caudal-trend-read { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.5; max-width: 42ch; }
-  .hero-caudal-trend-read i { color: var(--faint); font-style: normal; }
+  .hero-caudal-trend { margin-top: 4px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .hero-caudal-trend:empty { display: none; padding: 0; border: none; margin: 0; }
+  .hero-caudal-trend-line { font-family: ui-monospace, monospace; font-size: 13.5px; cursor: help; }
+  .hero-caudal-trend-sub { font-weight: 600; color: var(--muted); }
+  .hero-caudal-trend-read { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
 
   /* ---------------- recent-flow: grid de mini-graficos ---------------- */
   .recent-flow { margin-top: 26px; padding-top: 22px; border-top: 1px dashed var(--line); }
@@ -296,10 +293,15 @@
   .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
   select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--panel); color: var(--ink); font-size: 13.5px; }
   .segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+  /* [hidden] pierde contra un display declarado en una clase si esa clase se
+     define despues en la cascada (misma especificidad) -- sin esto, ocultar
+     un .segmented con el atributo hidden no tendria efecto visual. */
+  .segmented[hidden] { display: none; }
   .segmented button { padding: 7px 11px; border: none; background: var(--panel); color: var(--muted); cursor: pointer; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); font-size: 13px; }
   .segmented button:last-child { border-right: none; }
   .segmented button.active { background: var(--accent); color: white; }
   .segmented button:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cd-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
   footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12.5px; }
   footer p { max-width: 74ch; }
@@ -327,7 +329,6 @@
       <div>
         <div class="resumen-eyebrow">Reporte operativo · se actualiza cada hora</div>
         <h2>Así está el embalse ahora</h2>
-        <div class="section-note">Cota, volumen útil, caudal afluente, agua liberada y generación — el reporte de EMEC resumido en un vistazo. No hace falta abrirlo aparte.</div>
       </div>
     </div>
     <div class="panel">
@@ -341,7 +342,17 @@
         <h2><span class="letter">1</span>Caudal afluente <span id="cd-titulo"></span></h2>
         <div class="section-note" id="cd-section-note"></div>
       </div>
-      <select id="cd-select" aria-label="Elegir ventana de tiempo"></select>
+      <div class="cd-controls">
+        <div class="segmented" id="cd-modo-toggle">
+          <button data-modo="horas" class="active">Últimas horas</button>
+          <button data-modo="mes">Por mes</button>
+        </div>
+        <div class="segmented" id="cd-horas-toggle">
+          <button data-h="24" class="active">24 horas</button>
+          <button data-h="120">5 días</button>
+        </div>
+        <select id="cd-mes-select" aria-label="Elegir mes" hidden></select>
+      </div>
     </div>
     <div class="panel hero-caudal-panel">
       <div class="hero-caudal-topbar">
@@ -349,11 +360,11 @@
           <div class="hero-caudal-pct" id="cd-pct"></div>
           <div class="hero-caudal-pct-label" id="cd-pct-label"></div>
         </div>
-        <div class="hero-caudal-stat">
+        <div class="hero-caudal-details">
           <div class="hero-caudal-abs" id="cd-abs"></div>
           <div id="cd-badge"></div>
+          <div class="hero-caudal-trend" id="cd-tendencia"></div>
         </div>
-        <div class="hero-caudal-trend" id="cd-tendencia"></div>
       </div>
       <div class="ad-stats" id="cd-stats"></div>
       <div class="ad-scroll" id="cd-chart-hourly-wrap">
@@ -1274,6 +1285,10 @@ function renderAportesDetalle(horas) {
   document.getElementById("cd-section-note").innerHTML =
     `Caudal afluente real, lectura por lectura, contra lo normal históricamente <b>este mes</b> y en años El Niño / La Niña / Neutral.`;
   document.getElementById("cd-nota").textContent = "";
+  // El %/valor/insignia/tendencia de arriba siempre son los del MES en curso
+  // (el mismo calculo que en modo "Por mes"), no un dato horario puntual --
+  // asi la tarjeta nunca muestra dos definiciones distintas de "%".
+  renderCdHero(prom_mes);
   document.getElementById("cd-legend").innerHTML = `
     <span><i style="border-top-color:var(--accent)"></i>Caudal afluente real</span>
     <span><i style="border-top-color:var(--gen)"></i>Turbinado real (generación)</span>
@@ -1464,30 +1479,6 @@ function renderAportesDetalle(horas) {
   const s = statsVentanaAportes(datos);
   const up = s.tendencia >= 0;
 
-  // Hero: % del promedio historico del mes con el dato de la ULTIMA hora
-  // reportada (no el promedio de la ventana) -- "que tan normal es el
-  // reporte de ahora mismo", mismo criterio que el resumen de mas arriba.
-  const pctEl = document.getElementById("cd-pct");
-  document.getElementById("cd-pct-label").textContent = `del promedio histórico de ${nombreMes} — última hora reportada`;
-  if (prom.todos != null) {
-    const pct = s.actual / prom.todos * 100;
-    pctEl.textContent = `${fmt(pct, 0)}%`;
-    pctEl.style.color = pct < 100 ? "var(--serious)" : "var(--good)";
-  } else {
-    pctEl.textContent = "—";
-    pctEl.style.color = "var(--muted)";
-  }
-  document.getElementById("cd-abs").innerHTML =
-    `${fmt(s.actual, 1)} m³/s <span>· ${formatearFechaHora(datos[datos.length - 1].fecha_hora)}</span>`;
-  const badge = document.getElementById("cd-badge");
-  if (prom.nino != null && s.actual < prom.nino) {
-    badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--critical-wash);color:var(--critical);">Por debajo del promedio en años El Niño</span>`;
-  } else if (prom.nino != null) {
-    badge.innerHTML = `<span class="hero-caudal-badge" style="background:var(--warning-wash);color:var(--warning);">Por encima del promedio en años El Niño</span>`;
-  } else {
-    badge.innerHTML = "";
-  }
-
   document.getElementById("cd-stats").innerHTML = `
     <div class="ad-stat"><span class="stat-chip-label">Promedio ventana</span><span class="stat-chip neutral">${fmt(s.promedio, 1)} m³/s</span></div>
     <div class="ad-stat"><span class="stat-chip-label">Máximo</span><span class="stat-chip neutral">${fmt(s.maximo, 1)} m³/s</span></div>
@@ -1587,11 +1578,11 @@ function renderTendenciaCaudal(tr, prom, nombreMes) {
 
   const cifra = tr.estable
     ? "estable"
-    : `${sube ? "+" : "−"}${fmt(cambioAbs, cambioAbs < 10 ? 1 : 0)} m³/s por día`;
-  const sub = tr.estable
-    ? `variación diaria dentro del ruido (±${fmt(tr.ruido, 0)} m³/s)`
-    : `≈ ${fmt(pctDia, 1)}%/día frente a lo normal de ${nombreMes}` +
-      (tr.racha >= 2 ? ` · ${sube ? "sube" : "baja"} ${tr.racha} días seguidos` : "");
+    : `${sube ? "+" : "−"}${fmt(cambioAbs, cambioAbs < 10 ? 1 : 0)} m³/s/día`;
+  const sub = (tr.estable
+    ? `últimos ${tr.n} días · variación dentro del ruido (±${fmt(tr.ruido, 0)} m³/s)`
+    : `últimos ${tr.n} días · ≈${fmt(pctDia, 1)}%/día vs. lo normal de ${nombreMes}` +
+      (tr.racha >= 2 ? ` · ${sube ? "sube" : "baja"} ${tr.racha} días seguidos` : ""));
 
   let proy = "";
   if (!tr.estable && tr.r2 >= 0.25) {
@@ -1622,31 +1613,33 @@ function renderTendenciaCaudal(tr, prom, nombreMes) {
       : `Descenso dentro de lo estacional; el caudal sigue por encima del patrón de años El Niño.`;
   }
 
-  const fit = tr.r2 >= 0.6 ? `R²=${fmt(tr.r2, 2)}`
-            : tr.r2 >= 0.25 ? `R²=${fmt(tr.r2, 2)}, dispersión moderada`
-            : `mucha dispersión día a día`;
+  const fit = tr.r2 >= 0.6 ? `ajuste lineal, R²=${fmt(tr.r2, 2)}`
+            : tr.r2 >= 0.25 ? `ajuste lineal, R²=${fmt(tr.r2, 2)} (dispersión moderada)`
+            : `ajuste lineal con mucha dispersión día a día`;
 
   el.innerHTML = `
-    <div class="hero-caudal-trend-label">Tendencia · últimos ${tr.n} días</div>
-    <div class="hero-caudal-trend-main" style="color:${color}">${flecha} ${cifra}<br><small>${sub}</small></div>
-    <div class="hero-caudal-trend-read">${lectura}${proy} <i>(ajuste lineal, ${fit}; estimación, no un pronóstico).</i></div>
+    <div class="hero-caudal-trend-line" title="Tendencia: ${fit}. Es una estimación, no un pronóstico.">
+      <b style="color:${color}">${flecha} ${cifra}</b> <span class="hero-caudal-trend-sub">· ${sub}</span>
+    </div>
+    <div class="hero-caudal-trend-read">${lectura}${proy}</div>
   `;
 }
 
-function renderCaudalMesActual(mesSel) {
-  const mes = mesSel || caudalMesSeleccionado;
+// El % (y su abs/insignia/tendencia) SIEMPRE es el mismo calculo -- promedio
+// del mes hasta hoy (o el mes completo, si ya termino) contra lo normal de
+// ESE mes -- sin importar si abajo se ve la grafica horaria o la de un mes:
+// asi nunca conviven dos definiciones de "%" distintas en la misma tarjeta.
+// En modo "Ultimas horas" el mes de referencia es siempre el mes en curso;
+// en modo "Por mes" es el que se elija. Devuelve {datos, prom, tr} para que
+// quien la llame (el modo mensual) pueda ademas dibujar su grafica de barras.
+function renderCdHero(mes) {
   const { anio, mes: mesActual } = mesAnioActual();
   const esMesActual = mes === mesActual;
   const nombreMes = MESES_LARGO[mes - 1];
-  const nombreMesCap = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
-  document.getElementById("cd-titulo").textContent = `— ${nombreMesCap} ${anio}`;
-  document.getElementById("cd-section-note").textContent = esMesActual
-    ? ""
-    : `Mes completo de ${anio} — vuelve a "${MESES_LARGO[mesActual - 1]}" para ver el mes en curso.`;
 
   const datos = serieMes(mes);
   const prom = promHistMes(mes);
-  if (datos.length === 0 || prom.todos == null) return;
+  if (datos.length === 0 || prom.todos == null) return null;
 
   const valores = datos.map(d => d.aportes);
   const promedioMes = valores.reduce((a, b) => a + b, 0) / valores.length;
@@ -1672,6 +1665,24 @@ function renderCaudalMesActual(mesSel) {
   } else {
     badge.innerHTML = "";
   }
+  return { datos, prom, tr, nombreMes, esMesActual };
+}
+
+function renderCaudalMesActual(mesSel) {
+  const mes = mesSel || caudalMesSeleccionado;
+  const { anio, mes: mesActual } = mesAnioActual();
+  const nombreMesCap0 = MESES_LARGO[mes - 1];
+  const nombreMesCap = nombreMesCap0.charAt(0).toUpperCase() + nombreMesCap0.slice(1);
+  document.getElementById("cd-titulo").textContent = `— ${nombreMesCap} ${anio}`;
+
+  const hero = renderCdHero(mes);
+  if (!hero) return;
+  const { datos, prom, tr, nombreMes, esMesActual } = hero;
+  const valores = datos.map(d => d.aportes); // para el eje Y de la grafica de barras
+
+  document.getElementById("cd-section-note").textContent = esMesActual
+    ? ""
+    : `Mes completo de ${anio} — vuelve a "${MESES_LARGO[mesActual - 1]}" para ver el mes en curso.`;
   document.getElementById("cd-nota").textContent = esMesActual
     ? `Promedio de todos los días de ${nombreMes} hasta hoy (incluye el día de hoy, con las horas reportadas).`
     : `Promedio de los ${datos.length} días de ${nombreMes} de ${anio}.`;
@@ -1817,40 +1828,58 @@ function renderCaudalMesActual(mesSel) {
 }
 
 // Un solo cajon para "Aportes en detalle" (hora a hora) y "Caudal afluente"
-// (dia a dia, mes elegido): un unico selector con las 2 ventanas horarias +
-// todos los meses ya transcurridos, y se intercambia el contenido (grafica,
-// leyenda, estadisticas, tendencia) segun lo elegido. Arranca en horario
-// (24h) porque es el pedido explicito por defecto.
-let cdModo = "h24";
+// (dia a dia, mes elegido), con DOS controles separados en vez de un solo
+// selector mezclando todo:
+//   1. #cd-modo-toggle: "Ultimas horas" / "Por mes" -- cual grafica se ve.
+//   2. el control de la sub-opcion correspondiente, que solo se activa para
+//      el modo elegido: #cd-horas-toggle (24h/5 dias) o #cd-mes-select (mes).
+// Arranca en "Ultimas horas" / 24h, que es el pedido explicito por defecto.
+let cdModoPrincipal = "horas";
 
-function initCdSelect() {
-  const sel = document.getElementById("cd-select");
+function initCdControls() {
+  const selMes = document.getElementById("cd-mes-select");
   const { anio, mes: mesActual } = mesAnioActual();
-  const opciones = [
-    { value: "h24", label: "Últimas 24 horas" },
-    { value: "h120", label: "Últimos 5 días" },
-  ];
   for (let m = 1; m <= mesActual; m++) {
     const nombre = MESES_LARGO[m - 1];
-    opciones.push({ value: String(m), label: `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${anio}` });
+    const opt = document.createElement("option");
+    opt.value = String(m);
+    opt.textContent = `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${anio}`;
+    if (m === mesActual) opt.selected = true;
+    selMes.appendChild(opt);
   }
-  sel.innerHTML = opciones.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
-  sel.value = cdModo;
-  sel.addEventListener("change", () => renderCd(sel.value));
+  selMes.addEventListener("change", () => {
+    caudalMesSeleccionado = parseInt(selMes.value, 10);
+    renderCaudalMesActual(caudalMesSeleccionado);
+  });
+
+  document.querySelectorAll("#cd-modo-toggle button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#cd-modo-toggle button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      cambiarModoPrincipalCd(btn.dataset.modo);
+    });
+  });
+  document.querySelectorAll("#cd-horas-toggle button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#cd-horas-toggle button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      ventanaAportesHoras = parseInt(btn.dataset.h, 10);
+      renderAportesDetalle(ventanaAportesHoras);
+    });
+  });
 }
 
-function renderCd(modo) {
-  cdModo = modo;
-  const esHoraria = modo.startsWith("h");
+function cambiarModoPrincipalCd(modo) {
+  cdModoPrincipal = modo;
+  const esHoraria = modo === "horas";
+  document.getElementById("cd-horas-toggle").hidden = !esHoraria;
+  document.getElementById("cd-mes-select").hidden = esHoraria;
   document.getElementById("cd-chart-hourly-wrap").hidden = !esHoraria;
   document.getElementById("cd-chart-month-wrap").hidden = esHoraria;
   document.getElementById("cd-stats").hidden = !esHoraria;
-  document.getElementById("cd-tendencia").hidden = esHoraria;
   if (esHoraria) {
-    ventanaAportesHoras = modo === "h24" ? 24 : 120;
     renderAportesDetalle(ventanaAportesHoras);
   } else {
-    caudalMesSeleccionado = parseInt(modo, 10);
     renderCaudalMesActual(caudalMesSeleccionado);
   }
 }
@@ -2138,6 +2167,6 @@ actualizarVentana(); // calcula el estado inicial ("hoy") y dispara el primer re
 initHistorialAlertas();
 renderValoresGrid();
 initRecienteGrid();
-initCdSelect();
-renderCd(cdModo);
+initCdControls();
+cambiarModoPrincipalCd(cdModoPrincipal);
 </script>
