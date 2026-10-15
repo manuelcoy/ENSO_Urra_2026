@@ -31,6 +31,20 @@
     --serious-wash: #e08a4d26;
     --critical: #e2635d;
     --critical-wash: #e2635d24;
+    /* Semaforo OPERATIVO/interno (Capitulo 6 del informe, recalculado mes a
+       mes) -- rampa secuencial de un solo matiz (teal -> violeta),
+       deliberadamente FUERA de la familia good/warning/serious/critical de
+       arriba (que queda reservada al semaforo CRITICO estatico del Capitulo
+       7, el unico que implica riesgo real de incumplimiento). Ver Seccion 6,
+       "Nota de uso", del informe tecnico. */
+    --normal: #2bb8cf;
+    --normal-wash: #2bb8cf24;
+    --atencion: #5f93d6;
+    --atencion-wash: #5f93d624;
+    --vigilancia: #8482dd;
+    --vigilancia-wash: #8482dd24;
+    --prioritario: #a85bc7;
+    --prioritario-wash: #a85bc724;
     /* Generacion (turbinado) -- dorado/electrico, deliberadamente distinto del
        ambar de --warning para que una linea de generacion en un grafico nunca
        se confunda con un estado de alerta. */
@@ -65,6 +79,14 @@
     --serious-wash: #d9762f22;
     --critical: #b8342f;
     --critical-wash: #b8342f1e;
+    --normal: #0f7a8c;
+    --normal-wash: #0f7a8c17;
+    --atencion: #3d6b8c;
+    --atencion-wash: #3d6b8c17;
+    --vigilancia: #4a4a8c;
+    --vigilancia-wash: #4a4a8c17;
+    --prioritario: #5c2d6b;
+    --prioritario-wash: #5c2d6b17;
     --gen: #a5790a;
     --gen-wash: #a5790a1a;
     --shadow: 0 1px 2px rgba(13,26,29,0.06), 0 6px 20px rgba(13,26,29,0.06);
@@ -590,9 +612,22 @@ function svgEl(tag, attrs) {
 function cssVar(nombre) {
   return getComputedStyle(document.documentElement).getPropertyValue(nombre).trim();
 }
+// Semaforo CRITICO estatico (Capitulo 7 del informe) -- el unico que implica
+// riesgo real de incumplimiento de la regla de operacion. Solo lo usa
+// renderAlertaCriticaOperacion() mas abajo.
 const COLOR_STATUS = { ROJO: "var(--critical)", NARANJA: "var(--serious)", AMARILLO: "var(--warning)", VERDE: "var(--good)" };
 // "alerta" es femenino: ROJA/AMARILLA concuerdan en genero; NARANJA y VERDE son invariables.
 const LABEL_ESTADO = { ROJO: "ROJA", NARANJA: "NARANJA", AMARILLO: "AMARILLA", VERDE: "VERDE" };
+
+// Semaforo OPERATIVO/interno (Capitulo 6 del informe, recalculado mes a mes)
+// -- lo usan los tanques de cota/volumen util/cota equivalente, el historial
+// de 30 dias y los graficos de severidad por episodio. Deliberadamente
+// distinto en nombres y colores de COLOR_STATUS/LABEL_ESTADO de arriba, para
+// que nunca pueda confundirse con el semaforo critico (ver Seccion 6, "Nota
+// de uso", del informe tecnico).
+const COLOR_SEGUIMIENTO = { ROJO: "var(--prioritario)", NARANJA: "var(--vigilancia)", AMARILLO: "var(--atencion)", VERDE: "var(--normal)" };
+const WASH_SEGUIMIENTO = { ROJO: "var(--prioritario-wash)", NARANJA: "var(--vigilancia-wash)", AMARILLO: "var(--atencion-wash)", VERDE: "var(--normal-wash)" };
+const LABEL_SEGUIMIENTO = { ROJO: "PRIORITARIO", NARANJA: "VIGILANCIA", AMARILLO: "ATENCIÓN", VERDE: "NORMAL" };
 
 // Clasificacion INSTANTANEA de un valor contra el umbral de SU mes (mismo
 // criterio que clasificar_alerta_serie en Python, sin el filtro de
@@ -613,8 +648,8 @@ function clasificarInstantaneo(valor, umbral) {
 function notaTransicion(alertaConfirmada, instantanea) {
   if (instantanea === alertaConfirmada) return "";
   return ` <span class="stat-chip neutral" style="font-size:11px;padding:1px 7px;"
-    title="El nivel de hoy ya cae en la banda ${LABEL_ESTADO[instantanea]} del mes en curso, pero la alerta reportada solo cambia si esa clasificacion se sostiene ${DATA.persistencia_alerta_dias} dias seguidos (para no reaccionar a un solo dato). Por eso el agua del tanque puede verse en una banda de color distinta a la de este texto durante la transicion.">
-    en transición a ${LABEL_ESTADO[instantanea]}</span>`;
+    title="El nivel de hoy ya cae en la banda ${LABEL_SEGUIMIENTO[instantanea]} del mes en curso, pero la alerta reportada solo cambia si esa clasificacion se sostiene ${DATA.persistencia_alerta_dias} dias seguidos (para no reaccionar a un solo dato). Por eso el agua del tanque puede verse en una banda de color distinta a la de este texto durante la transicion.">
+    en transición a ${LABEL_SEGUIMIENTO[instantanea]}</span>`;
 }
 const COLOR_FASE = { Nino: "var(--nino)", Nina: "var(--nina)", Neutral: "var(--neutral-phase)" };
 
@@ -837,10 +872,10 @@ function renderTankCota(estado) {
   const u = estado.umbralNivel;
   const yDomain = [ref.NMIF, ref.NFOR + 1.2];
   renderTankGauge("gauge-tank-cota", estado.cota, yDomain, [
-    { from: yDomain[0], to: u.umbral_rojo_P10, color: "var(--critical)" },
-    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--serious)" },
-    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--warning)" },
-    { from: u.umbral_amarillo_P50, to: yDomain[1], color: "var(--good)" },
+    { from: yDomain[0], to: u.umbral_rojo_P10, color: "var(--prioritario)" },
+    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--vigilancia)" },
+    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--atencion)" },
+    { from: u.umbral_amarillo_P50, to: yDomain[1], color: "var(--normal)" },
   ], [
     ["NFOR", ref.NFOR, null],
     ["NMIF", ref.NMIF, "mínimo físico"],
@@ -858,10 +893,10 @@ function renderTankCotaEquivalente(estado) {
   const u = estado.umbralNivelEquiv;
   const yDomain = [ref.NMIF, ref.NFOR + 1.2];
   renderTankGauge("gauge-tank-cota-equiv", estado.cota, yDomain, [
-    { from: yDomain[0], to: u.umbral_rojo_P10, color: "var(--critical)" },
-    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--serious)" },
-    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--warning)" },
-    { from: u.umbral_amarillo_P50, to: yDomain[1], color: "var(--good)" },
+    { from: yDomain[0], to: u.umbral_rojo_P10, color: "var(--prioritario)" },
+    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--vigilancia)" },
+    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--atencion)" },
+    { from: u.umbral_amarillo_P50, to: yDomain[1], color: "var(--normal)" },
   ], [
     ["NFOR", ref.NFOR, null],
     ["NMIF", ref.NMIF, "mínimo físico"],
@@ -875,10 +910,10 @@ function renderTankVolumen(estado) {
   const yMax = DATA.volumen_util_max_hm3 * 1.05;
   const yDomain = [0, yMax];
   renderTankGauge("gauge-tank-vu", estado.vu, yDomain, [
-    { from: 0, to: u.umbral_rojo_P10, color: "var(--critical)" },
-    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--serious)" },
-    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--warning)" },
-    { from: u.umbral_amarillo_P50, to: yMax, color: "var(--good)" },
+    { from: 0, to: u.umbral_rojo_P10, color: "var(--prioritario)" },
+    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--vigilancia)" },
+    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--atencion)" },
+    { from: u.umbral_amarillo_P50, to: yMax, color: "var(--normal)" },
   ], [
     ["VACIO", 0, "volumen muerto"],
     ["MAX_OPER", DATA.volumen_util_max_hm3, "máx. operación"],
@@ -941,7 +976,7 @@ function tituloComparacion(n) {
 function renderHeroReadouts(estado) {
   document.getElementById("rv-cota").textContent = fmt(estado.cota, 2) + " msnm";
   const instCota = clasificarInstantaneo(estado.cota, estado.umbralNivel);
-  document.getElementById("status-cota").innerHTML = `<span style="color:${COLOR_STATUS[estado.alertaCota]}" title="La alerta se confirma cuando se sostiene ${DATA.persistencia_alerta_dias} días seguidos en el mismo nivel (para arriba o para abajo), no con un solo dato -- así un aguacero puntual no la cambia por sí solo.">● Alerta ${LABEL_ESTADO[estado.alertaCota]}</span>${notaTransicion(estado.alertaCota, instCota)}`;
+  document.getElementById("status-cota").innerHTML = `<span style="color:${COLOR_SEGUIMIENTO[estado.alertaCota]}" title="La alerta se confirma cuando se sostiene ${DATA.persistencia_alerta_dias} días seguidos en el mismo nivel (para arriba o para abajo), no con un solo dato -- así un aguacero puntual no la cambia por sí solo.">● Nivel ${LABEL_SEGUIMIENTO[estado.alertaCota]}</span>${notaTransicion(estado.alertaCota, instCota)}`;
   const cotaRateUp = estado.tendenciaCota >= 0;
   document.getElementById("chip-cota-rate").innerHTML =
     `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m (día)</span>`;
@@ -956,7 +991,7 @@ function renderHeroReadouts(estado) {
 
   document.getElementById("rv-vu").textContent = `${fmt(estado.vu, 2)} hm³ (${fmt(estado.pct, 1)}% útil)`;
   const instVU = clasificarInstantaneo(estado.vu, estado.umbralVu);
-  document.getElementById("status-vu").innerHTML = `<span style="color:${COLOR_STATUS[estado.alertaVU]}" title="La alerta se confirma cuando se sostiene ${DATA.persistencia_alerta_dias} días seguidos en el mismo nivel (para arriba o para abajo), no con un solo dato -- así un aguacero puntual no la cambia por sí solo.">● Alerta ${LABEL_ESTADO[estado.alertaVU]}</span>${notaTransicion(estado.alertaVU, instVU)}`;
+  document.getElementById("status-vu").innerHTML = `<span style="color:${COLOR_SEGUIMIENTO[estado.alertaVU]}" title="La alerta se confirma cuando se sostiene ${DATA.persistencia_alerta_dias} días seguidos en el mismo nivel (para arriba o para abajo), no con un solo dato -- así un aguacero puntual no la cambia por sí solo.">● Nivel ${LABEL_SEGUIMIENTO[estado.alertaVU]}</span>${notaTransicion(estado.alertaVU, instVU)}`;
   const vuRateUp = estado.tendenciaVU >= 0;
   const pctTotal = estado.volTotal / DATA.volumen_total_max_hm3 * 100;
   document.getElementById("chip-vu-total").innerHTML =
@@ -978,7 +1013,7 @@ function renderHeroReadouts(estado) {
   // sus propios campos de valor en el estado.
   document.getElementById("rv-cota-equiv").textContent = fmt(estado.cota, 2) + " msnm";
   const instCotaEquiv = clasificarInstantaneo(estado.cota, estado.umbralNivelEquiv);
-  document.getElementById("status-cota-equiv").innerHTML = `<span style="color:${COLOR_STATUS[estado.alertaCotaEquiv]}" title="Mismo umbral de volumen útil, expresado en msnm con la curva cota-volumen vigente hoy -- por eso esta alerta siempre coincide con la de volumen útil.">● Alerta ${LABEL_ESTADO[estado.alertaCotaEquiv]}</span>${notaTransicion(estado.alertaCotaEquiv, instCotaEquiv)}`;
+  document.getElementById("status-cota-equiv").innerHTML = `<span style="color:${COLOR_SEGUIMIENTO[estado.alertaCotaEquiv]}" title="Mismo umbral de volumen útil, expresado en msnm con la curva cota-volumen vigente hoy -- por eso esta alerta siempre coincide con la de volumen útil.">● Nivel ${LABEL_SEGUIMIENTO[estado.alertaCotaEquiv]}</span>${notaTransicion(estado.alertaCotaEquiv, instCotaEquiv)}`;
   document.getElementById("chip-cota-equiv-rate").innerHTML =
     `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m (día)</span>`;
   const vsHoyCotaEquiv = document.getElementById("chip-cota-equiv-vshoy");
@@ -1040,9 +1075,9 @@ function renderHallazgo(estado) {
     ? `Con el último dato disponible (${formatearFechaHora(estado.fecha)})`
     : `Con el cierre de ${etiquetaVentana(estado.n)} (${estado.fecha})`;
   const refCota = estado.n === 0 ? "el cierre de ayer" : "el día anterior";
-  el.innerHTML = `<b>${intro}:</b> la cota está en alerta <b>${LABEL_ESTADO[estado.alertaCota]}</b>
+  el.innerHTML = `<b>${intro}:</b> la cota está en nivel <b>${LABEL_SEGUIMIENTO[estado.alertaCota]}</b>
     (<span class="stat-chip ${estado.tendenciaCota >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaCota,2)} m</span> vs. ${refCota}),
-    pero el volumen útil ya está en alerta <b>${LABEL_ESTADO[estado.alertaVU]}</b>
+    pero el volumen útil ya está en nivel <b>${LABEL_SEGUIMIENTO[estado.alertaVU]}</b>
     (<span class="stat-chip pct" style="font-size:13px;padding:1px 8px;">${fmt(estado.pct,1)}%</span> de llenado,
     <span class="stat-chip ${estado.tendenciaVU >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaVU,1)} hm³</span> vs. ${refCota}) —
     dos lecturas del mismo instante pueden diferir porque la relación cota-volumen no es lineal. Cambia el día
@@ -1228,7 +1263,7 @@ function renderHistorialAlertas() {
       const estado = d[fila.campo];
       const rect = svgEl("rect", {
         x: cx, y: fila.y, width: cellW, height: rowH, rx: 4,
-        fill: COLOR_STATUS[estado], opacity: 0.9,
+        fill: COLOR_SEGUIMIENTO[estado], opacity: 0.9,
       });
       svg.appendChild(rect);
       rect.addEventListener("mouseenter", evt => {
@@ -1236,7 +1271,7 @@ function renderHistorialAlertas() {
         rect.setAttribute("stroke", "var(--ink)");
         rect.setAttribute("stroke-width", 1.6);
         const encabezado = d.esHoy ? `${d.fecha} · hoy` : d.fecha;
-        showTip(`<b>${encabezado}</b><div class="tt-row"><span>${fila.etiqueta}</span><b>${LABEL_ESTADO[estado]}</b></div><div class="tt-row"><span>Valor</span><b>${fila.valor(d)}</b></div>`, evt);
+        showTip(`<b>${encabezado}</b><div class="tt-row"><span>${fila.etiqueta}</span><b>${LABEL_SEGUIMIENTO[estado]}</b></div><div class="tt-row"><span>Valor</span><b>${fila.valor(d)}</b></div>`, evt);
       });
       rect.addEventListener("mousemove", evt => moveTip(evt));
       rect.addEventListener("mouseleave", () => {
@@ -1260,7 +1295,7 @@ function renderHistorialAlertas() {
 
 function initHistorialAlertas() {
   document.getElementById("ah-legend").innerHTML = ["ROJO", "NARANJA", "AMARILLO", "VERDE"].map(k =>
-    `<span><i style="background:${COLOR_STATUS[k]}"></i>${LABEL_ESTADO[k]}</span>`
+    `<span><i style="background:${COLOR_SEGUIMIENTO[k]}"></i>${LABEL_SEGUIMIENTO[k]}</span>`
   ).join("");
   renderHistorialAlertas();
 }
@@ -2044,7 +2079,7 @@ function renderSeverityBars(svgId, rows, valueKey, unitSuffix, refLine) {
   rows.forEach((r, i) => {
     const val = r[valueKey];
     const bx = x(i), bwid = bw * 0.76;
-    const rect = svgEl("rect", { x: bx, y: y(val), width: bwid, height: 0, fill: COLOR_STATUS[r.alerta], rx: 3 });
+    const rect = svgEl("rect", { x: bx, y: y(val), width: bwid, height: 0, fill: COLOR_SEGUIMIENTO[r.alerta], rx: 3 });
     const baseY = y(yMin), topY = y(val);
     rect.setAttribute("y", topY);
     rect.setAttribute("height", Math.max(2, baseY - topY));
@@ -2057,7 +2092,7 @@ function renderSeverityBars(svgId, rows, valueKey, unitSuffix, refLine) {
         <div class="tt-row"><span>Mínimo</span><b>${fmt(val, 0)} ${unitSuffix}</b></div>
         <div class="tt-row"><span>Fecha del mínimo</span><span>${r.fecha_minimo}</span></div>
         <div class="tt-row"><span>Tasa de caída</span><span>${fmt(r["tasa_descenso_" + (unitSuffix === "hm³" ? "hm3" : "msnm") + "_mes"], 1)} ${unitSuffix}/mes</span></div>
-        <div class="tt-row"><span>Alerta</span><b style="color:${COLOR_STATUS[r.alerta]}">${LABEL_ESTADO[r.alerta]}</b></div>`, evt);
+        <div class="tt-row"><span>Alerta</span><b style="color:${COLOR_SEGUIMIENTO[r.alerta]}">${LABEL_SEGUIMIENTO[r.alerta]}</b></div>`, evt);
     });
     rect.addEventListener("mouseleave", () => { rect.setAttribute("opacity", 1); hideTip(); });
 
