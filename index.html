@@ -37,14 +37,28 @@
        arriba (que queda reservada al semaforo CRITICO estatico del Capitulo
        7, el unico que implica riesgo real de incumplimiento). Ver Seccion 6,
        "Nota de uso", del informe tecnico. */
-    --normal: #2bb8cf;
-    --normal-wash: #2bb8cf24;
-    --atencion: #5f93d6;
-    --atencion-wash: #5f93d624;
-    --vigilancia: #8482dd;
-    --vigilancia-wash: #8482dd24;
-    --prioritario: #a85bc7;
-    --prioritario-wash: #a85bc724;
+    /* v2: rampa con saltos de luminosidad reales (OKLab dE adyacente >= 11;
+       la v1 tenia 6,3 entre ATENCION y VIGILANCIA). En oscuro la gravedad
+       sube en brillo. *-ink = version para TEXTO (contraste >= 4,5:1). */
+    --normal: #2a8577;
+    --normal-ink: #52c7b3;
+    --normal-wash: #2a857733;
+    --atencion: #3f7fd0;
+    --atencion-ink: #79a9ec;
+    --atencion-wash: #3f7fd033;
+    --vigilancia: #8e7cf2;
+    --vigilancia-ink: #a99cf6;
+    --vigilancia-wash: #8e7cf233;
+    --prioritario: #e5a3ff;
+    --prioritario-ink: #e5a3ff;
+    --prioritario-wash: #e5a3ff2e;
+    /* agua del tanque: neutra, para que el color lo ponga solo el nivel */
+    --agua: #3b5866;
+    --agua-top: #557886;
+    /* balance del embalse (sube / baja) -- fuera de la familia de estados */
+    --bal-up: #3fb6a8;
+    --bal-down: #d9a066;
+    --vertido: #a7b4c2;
     /* Generacion (turbinado) -- dorado/electrico, deliberadamente distinto del
        ambar de --warning para que una linea de generacion en un grafico nunca
        se confunda con un estado de alerta. */
@@ -79,14 +93,23 @@
     --serious-wash: #d9762f22;
     --critical: #b8342f;
     --critical-wash: #b8342f1e;
-    --normal: #0f7a8c;
-    --normal-wash: #0f7a8c17;
-    --atencion: #3d6b8c;
-    --atencion-wash: #3d6b8c17;
-    --vigilancia: #4a4a8c;
-    --vigilancia-wash: #4a4a8c17;
-    --prioritario: #5c2d6b;
-    --prioritario-wash: #5c2d6b17;
+    --normal: #5fbfa9;
+    --normal-ink: #1f7a68;
+    --normal-wash: #5fbfa92b;
+    --atencion: #4a8fd0;
+    --atencion-ink: #2a64a3;
+    --atencion-wash: #4a8fd022;
+    --vigilancia: #5b4fb8;
+    --vigilancia-ink: #5b4fb8;
+    --vigilancia-wash: #5b4fb81f;
+    --prioritario: #4a1d6e;
+    --prioritario-ink: #4a1d6e;
+    --prioritario-wash: #4a1d6e1a;
+    --agua: #a9c3cf;
+    --agua-top: #c4d7df;
+    --bal-up: #1f8f80;
+    --bal-down: #b97a35;
+    --vertido: #7d8b99;
     --gen: #a5790a;
     --gen-wash: #a5790a1a;
     --shadow: 0 1px 2px rgba(13,26,29,0.06), 0 6px 20px rgba(13,26,29,0.06);
@@ -327,6 +350,58 @@
 
   footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12.5px; }
   footer p { max-width: 74ch; }
+
+  /* ================= v2 ================= */
+  .v2-tag { display: inline-block; font-family: ui-monospace, monospace; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+    color: var(--accent-deep); border: 1px solid var(--accent); border-radius: 6px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; }
+  .version-link { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .lectura-box { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .fresh { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 999px; }
+  .fresh::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .fresh.ok { color: var(--good); background: var(--good-wash); }
+  .fresh.tarde { color: var(--warning); background: var(--warning-wash); }
+  .fresh.viejo { color: var(--critical); background: var(--critical-wash); }
+
+  .valor-item .valor-num small { font-size: 15px; font-weight: 700; color: var(--muted); }
+  .valor-sub b { color: var(--ink); font-weight: 700; }
+
+  /* panel 1: titulo en una sola pieza (en v1 el h2 flex partia el titulo en columnas) */
+  .h2-text { display: inline; }
+  .h2-text .h2-sub { font-weight: 600; color: var(--muted); }
+  .cd-top { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 330px); gap: 18px 30px; align-items: start;
+    padding-bottom: 16px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+  @media (max-width: 1000px) { .cd-top { grid-template-columns: auto minmax(0, 1fr); } .cd-acum { grid-column: 1 / -1; } }
+  @media (max-width: 620px) { .cd-top { grid-template-columns: 1fr; } }
+  .cd-acum { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--paper); display: flex; flex-direction: column; gap: 12px; }
+  .cd-acum-item .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); font-weight: 700; }
+  .cd-acum-item .v { font-family: ui-monospace, monospace; font-size: 17px; font-weight: 800; margin-top: 2px; }
+  .cd-acum-item .s { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .acum-bar { height: 7px; border-radius: 4px; background: var(--line); margin-top: 6px; position: relative; overflow: hidden; }
+  .acum-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+  .kpis { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 2px 0 6px; }
+  .kpi .stat-chip-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 700; display: block; margin-bottom: 2px; }
+  .kpi .stat-chip { font-size: 13.5px; }
+  .chart-fluid { margin-top: 8px; }
+  .chart-fluid svg { width: 100%; height: auto; }
+  .bal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .bal-head b { color: var(--ink); }
+
+  .rf-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .rf-card-value small { font-size: 13px; color: var(--muted); font-weight: 700; }
+
+  .hero-grid.v2 { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 1100px) { .hero-grid.v2 { grid-template-columns: 1fr 1fr; } .hero-grid.v2 .gauge-card-oni { grid-column: 1 / -1; border-left: none; border-top: 1px dashed var(--line); padding-top: 18px; } }
+  @media (max-width: 700px) { .hero-grid.v2 { grid-template-columns: 1fr; } .hero-grid.v2 .gauge-card { border-left: none; } }
+  .gauge-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .equiv-note { font-size: 12px; color: var(--muted); max-width: 30ch; margin-top: 6px; line-height: 1.45; }
+  .equiv-note b { color: var(--ink); }
+  .oni-spark { max-width: 230px; width: 100%; margin-top: 10px; }
+
+  .tray-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .tray-read { font-size: 13.5px; color: var(--muted); margin: 4px 0 10px; max-width: 90ch; }
+  .tray-read b { color: var(--ink); }
+  .kpis[hidden] { display: none; }
 </style>
 
 <div id="tooltip" role="status" aria-live="polite"></div>
@@ -338,8 +413,12 @@
         <div class="eyebrow">Protocolo ENSO · Embalse Urrá · Fase VII</div>
         <h1>Análisis del registro operativo del embalse Urrá</h1>
         <p class="sub">Lectura operativa construida sobre 25 años de registros horarios reales del embalse (2001–<span id="anio-fin"></span>) y el índice ONI de la NOAA. Corte: <b id="fecha-corte" class="mono"></b>.</p>
+        <p class="version-link">La versión anterior del tablero sigue disponible en <a href="v1.html">este enlace</a>.</p>
       </div>
-      <div class="ultima-lectura" id="ultima-lectura"></div>
+      <div class="lectura-box">
+        <div class="ultima-lectura" id="ultima-lectura"></div>
+        <span class="fresh" id="frescura"></span>
+      </div>
     </div>
   </div>
 </header>
@@ -361,7 +440,7 @@
   <section id="panel-caudal-detalle" style="margin-top:34px;">
     <div class="section-head">
       <div>
-        <h2><span class="letter">1</span>Caudal afluente <span id="cd-titulo"></span></h2>
+        <h2><span class="letter">1</span><span class="h2-text">Caudal afluente <span class="h2-sub" id="cd-titulo"></span></span></h2>
         <div class="section-note" id="cd-section-note"></div>
       </div>
       <div class="cd-controls">
@@ -377,23 +456,26 @@
       </div>
     </div>
     <div class="panel hero-caudal-panel">
-      <div class="hero-caudal-topbar">
+      <div class="cd-top">
         <div class="hero-caudal-stat">
           <div class="hero-caudal-pct" id="cd-pct"></div>
           <div class="hero-caudal-pct-label" id="cd-pct-label"></div>
         </div>
-        <div class="hero-caudal-details">
+        <div class="hero-caudal-details" style="max-width:none;">
           <div class="hero-caudal-abs" id="cd-abs"></div>
           <div id="cd-badge"></div>
           <div class="hero-caudal-trend" id="cd-tendencia"></div>
         </div>
+        <div class="cd-acum" id="cd-acum"></div>
       </div>
-      <div class="ad-stats" id="cd-stats"></div>
-      <div class="ad-scroll" id="cd-chart-hourly-wrap">
-        <svg id="chart-aportes-detalle" viewBox="0 0 1160 380" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="kpis" id="cd-stats"></div>
+      <div class="chart-fluid" id="cd-chart-hourly-wrap">
+        <svg id="chart-aportes-detalle"></svg>
+        <div class="bal-head"><span><b>Balance del embalse</b> — caudal que entra menos caudal que sale, hora a hora</span><span id="bal-resumen"></span></div>
+        <svg id="chart-balance-horario"></svg>
       </div>
-      <div class="hero-caudal-chart-wrap" id="cd-chart-month-wrap" hidden>
-        <svg id="chart-caudal-mes" viewBox="0 0 1160 440" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="chart-fluid" id="cd-chart-month-wrap" hidden>
+        <svg id="chart-caudal-mes"></svg>
       </div>
       <div class="rf-legend" id="cd-legend"></div>
       <div class="hero-caudal-note" id="cd-nota"></div>
@@ -403,12 +485,19 @@
   <section id="panel-resumen" style="margin-top:34px;">
     <div class="section-head">
       <div>
-        <h2>Gráficas del reporte — últimos 30 días</h2>
-        <div class="section-note">Cota, volumen útil, caudal afluente, agua liberada y generación, día por día, contra lo normal de este mes.</div>
+        <h2>Gráficas del reporte — <span id="rf-titulo-ventana">últimos 30 días</span></h2>
+        <div class="section-note">Promedio de cada día contra el rango normal de ese mes en los años anteriores. Cota y volumen útil, contra las bandas de alerta del mes.</div>
       </div>
     </div>
     <div class="panel">
-      <div class="rf-legend" id="rf-legend"></div>
+      <div class="rf-toolbar">
+        <div class="rf-legend" id="rf-legend" style="margin:8px 0;"></div>
+        <div class="segmented" id="rf-ventana-toggle">
+          <button data-d="30" class="active">30 días</button>
+          <button data-d="60">60 días</button>
+          <button data-d="90">90 días</button>
+        </div>
+      </div>
       <div class="rf-grid" id="rf-grid"></div>
     </div>
   </section>
@@ -433,37 +522,24 @@
       </div>
     </div>
     <div class="panel">
-      <div class="hero-grid">
+      <div class="hero-grid v2">
         <div class="gauge-card">
           <div class="gauge-card-title">Cota del embalse</div>
-          <div class="tank-figure"><svg id="gauge-tank-cota" viewBox="0 0 280 420" preserveAspectRatio="xMidYMid meet"></svg></div>
+          <div class="tank-figure"><svg id="gauge-tank-cota" viewBox="0 0 300 420" preserveAspectRatio="xMidYMid meet"></svg></div>
           <div class="gauge-readout">
             <div class="rv" id="rv-cota"></div>
-            <div id="chip-cota-rate"></div>
-            <div id="chip-cota-vshoy"></div>
+            <div class="gauge-chips"><span id="chip-cota-rate"></span><span id="chip-cota-vshoy"></span><span id="chip-cota-margen"></span></div>
             <div class="status-line" id="status-cota"></div>
           </div>
         </div>
-        <div class="gauge-pair">
-          <div class="gauge-card">
-            <div class="gauge-card-title">Volumen útil</div>
-            <div class="tank-figure"><svg id="gauge-tank-vu" viewBox="0 0 280 420" preserveAspectRatio="xMidYMid meet"></svg></div>
-            <div class="gauge-readout">
-              <div class="rv" id="rv-vu"></div>
-              <div id="chip-vu-total"></div><div id="chip-vu-rate"></div>
-              <div id="chip-vu-vshoy"></div>
-              <div class="status-line" id="status-vu"></div>
-            </div>
-          </div>
-          <div class="gauge-card">
-            <div class="gauge-card-title">Cota equivalente<span class="unit-note">según volumen útil</span></div>
-            <div class="tank-figure"><svg id="gauge-tank-cota-equiv" viewBox="0 0 280 420" preserveAspectRatio="xMidYMid meet"></svg></div>
-            <div class="gauge-readout">
-              <div class="rv" id="rv-cota-equiv"></div>
-              <div id="chip-cota-equiv-rate"></div>
-              <div id="chip-cota-equiv-vshoy"></div>
-              <div class="status-line" id="status-cota-equiv"></div>
-            </div>
+        <div class="gauge-card">
+          <div class="gauge-card-title">Volumen útil</div>
+          <div class="tank-figure"><svg id="gauge-tank-vu" viewBox="0 0 300 420" preserveAspectRatio="xMidYMid meet"></svg></div>
+          <div class="gauge-readout">
+            <div class="rv" id="rv-vu"></div>
+            <div class="gauge-chips"><span id="chip-vu-rate"></span><span id="chip-vu-vshoy"></span><span id="chip-vu-margen"></span></div>
+            <div class="status-line" id="status-vu"></div>
+            <div class="equiv-note" id="equiv-note"></div>
           </div>
         </div>
         <div class="gauge-card gauge-card-oni">
@@ -472,7 +548,8 @@
           <div class="oni-big" id="oni-big"></div>
           <div class="oni-status" id="oni-status"></div>
           <div class="oni-sub" id="oni-sub"></div>
-          <div class="oni-note">Índice mensual — no varía con la ventana de días.</div>
+          <svg class="oni-spark" id="oni-spark" viewBox="0 0 230 70"></svg>
+          <div class="oni-note">Últimas 12 temporadas. Índice mensual — no varía con la ventana de días.</div>
         </div>
       </div>
 
@@ -494,9 +571,33 @@
     </div>
   </section>
 
+  <section id="panel-trayectoria">
+    <div class="section-head">
+      <div>
+        <h2><span class="letter">3</span>El año hasta hoy, frente a los años El Niño</h2>
+        <div class="section-note" id="tray-note"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="tray-controls">
+        <div class="segmented" id="tray-modo">
+          <button data-m="anio" class="active">Año calendario</button>
+          <button data-m="analogo">Comparar con el episodio análogo</button>
+        </div>
+        <div class="segmented" id="tray-var">
+          <button data-v="volumen_util_hm3" class="active">Volumen útil (hm³)</button>
+          <button data-v="nivel">Cota (msnm)</button>
+        </div>
+      </div>
+      <div class="tray-read" id="tray-read"></div>
+      <div class="chart-fluid"><svg id="chart-trayectoria"></svg></div>
+      <div class="rf-legend" id="tray-legend"></div>
+    </div>
+  </section>
+
   <section id="panel-ef">
     <div class="section-head">
-      <h2><span class="letter">3</span>Este mes, comparado con el historial</h2>
+      <h2><span class="letter">4</span>Este mes, comparado con el historial</h2>
       <div class="section-note">Elige la variable y el mes — por defecto, el mes en curso.</div>
     </div>
     <div class="panel">
@@ -534,7 +635,9 @@
           <dt>Sedimentación del embalse</dt>
           <dd>La capacidad del embalse ha caído por sedimentación: el volumen total a cota máxima de operación pasó de 1857&nbsp;hm³ (batimetría año 2000) a 1617&nbsp;hm³ (batimetría 2022), −13% en 22 años. Por eso el volumen útil se calcula con una curva cota-volumen interpolada en el tiempo entre las batimetrías de 2012, 2016 y 2022, no con una curva fija.</dd>
           <dt>Calidad de datos</dt>
-          <dd>Hay un vacío real de registro entre 2025-06-10 y 2025-12-31 (no se interpola). Un valor puntual de nivel mínimo el 2025-06-14 es un error de sensor confirmado y se excluye. Los años 2001-2004 corresponden al llenado inicial del embalse y su nivel mínimo no es directamente comparable con la operación posterior.</dd>
+          <dd>El registro de 2025 está completo (el segundo semestre se incorporó en octubre de 2026). Un valor puntual de nivel mínimo el 2025-06-14 es un error de sensor confirmado y se excluye. Los años 2001-2004 corresponden al llenado inicial del embalse y su nivel mínimo no es directamente comparable con la operación posterior; por eso los rangos normales de cota y volumen útil se calculan desde 2005.</dd>
+          <dt>Rango normal del mes</dt>
+          <dd>Las bandas sombreadas de las gráficas muestran, para cada mes calendario, entre qué valores estuvo el promedio diario en los años anteriores: la banda oscura va del percentil 25 al 75 (la mitad central de los días) y la clara del percentil 10 al 90. La línea naranja es la mediana de los días de ese mes que cayeron en fase El Niño.</dd>
           <dt>No incluye lluvia</dt>
           <dd>Deliberadamente: el caudal afluente y el nivel observado ya integran la precipitación de la cuenca, así que actúan como forzante hidrológico único. Este es un análisis preliminar.</dd>
         </dl>
@@ -544,7 +647,7 @@
 
   <section id="panel-a">
     <div class="section-head">
-      <h2><span class="letter">4</span>Índice ONI — episodios El Niño y La Niña</h2>
+      <h2><span class="letter">5</span>Índice ONI — episodios El Niño y La Niña</h2>
     </div>
     <div class="panel">
       <svg id="chart-oni" viewBox="0 0 1080 340" preserveAspectRatio="xMidYMid meet"></svg>
@@ -559,7 +662,7 @@
 
   <section id="panel-bc">
     <div class="section-head">
-      <h2><span class="letter">5</span>Qué tan grave fue cada episodio El Niño</h2>
+      <h2><span class="letter">6</span>Qué tan grave fue cada episodio El Niño</h2>
       <div class="section-note">El pico del ONI no ordena la severidad real: pasa el cursor por cada barra para ver la fecha exacta del mínimo y la velocidad de caída.</div>
     </div>
     <div class="grid2">
@@ -578,6 +681,7 @@
 
   <footer>
     <p><b>Fuentes:</b> índice ONI, NOAA-CPC (cpc.ncep.noaa.gov). Registros operativos horarios del embalse Urrá 2001–2026, base de datos consolidada del Protocolo ENSO. Curva cota-volumen: batimetrías 2012/2016/2022. Análisis preliminar generado con <span class="mono">analisis_enso_embalse.py</span> — no reemplaza las reglas de operación vigentes ni el criterio del equipo de Urrá.</p>
+    <p>La versión anterior del tablero sigue disponible en <a href="v1.html">v1.html</a>.</p>
   </footer>
 </div>
 
@@ -628,6 +732,106 @@ const LABEL_ESTADO = { ROJO: "ROJA", NARANJA: "NARANJA", AMARILLO: "AMARILLA", V
 const COLOR_SEGUIMIENTO = { ROJO: "var(--prioritario)", NARANJA: "var(--vigilancia)", AMARILLO: "var(--atencion)", VERDE: "var(--normal)" };
 const WASH_SEGUIMIENTO = { ROJO: "var(--prioritario-wash)", NARANJA: "var(--vigilancia-wash)", AMARILLO: "var(--atencion-wash)", VERDE: "var(--normal-wash)" };
 const LABEL_SEGUIMIENTO = { ROJO: "PRIORITARIO", NARANJA: "VIGILANCIA", AMARILLO: "ATENCIÓN", VERDE: "NORMAL" };
+// v2: color para TEXTO de cada nivel (contraste >= 4,5:1 en ambos temas);
+// COLOR_SEGUIMIENTO queda para rellenos.
+const INK_SEGUIMIENTO = { ROJO: "var(--prioritario-ink)", NARANJA: "var(--vigilancia-ink)", AMARILLO: "var(--atencion-ink)", VERDE: "var(--normal-ink)" };
+const LETRA_SEGUIMIENTO = { ROJO: "P", NARANJA: "V", AMARILLO: "A", VERDE: "N" };
+const ZONA_VAR = { ROJO: "--prioritario", NARANJA: "--vigilancia", AMARILLO: "--atencion", VERDE: "--normal" };
+
+/* ---------------------------------------------------------------- v2: utilidades */
+const V2 = DATA.v2;
+const M3S_A_HM3_DIA = 0.0864;
+
+// Escala con marcas "redondas" (0, 100, 200... o 125, 126, 127...) en vez de
+// min*0.94 / max*1.06, que daba ejes como 124,25 / 485,40 / 846,55.
+function niceNum(range, round) {
+  const exp = Math.floor(Math.log10(range)), f = range / 10 ** exp;
+  const nf = round ? (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) : (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10);
+  return nf * 10 ** exp;
+}
+function niceScale(lo, hi, maxTicks = 5) {
+  if (!(hi > lo)) hi = lo + (Math.abs(lo) || 1) * 0.1;
+  const step = niceNum(niceNum(hi - lo, false) / (maxTicks - 1), true);
+  const min = Math.floor(lo / step) * step, max = Math.ceil(hi / step) * step;
+  const ticks = [];
+  for (let v = min; v <= max + step / 2; v += step) ticks.push(+v.toFixed(10));
+  return { min, max, step, ticks, dec: step >= 1 ? 0 : step >= 0.1 ? 1 : 2 };
+}
+function ejeY(svg, esc, y, x0, x1, fontSize = 10.5) {
+  esc.ticks.forEach(v => {
+    svg.appendChild(svgEl("line", { x1: x0, x2: x1, y1: y(v), y2: y(v), class: "gridline" }));
+    const t = svgEl("text", { x: x0 - 7, y: y(v) + 3.5, "text-anchor": "end", "font-size": fontSize, class: "mono" });
+    t.textContent = fmt(v, esc.dec); t.setAttribute("fill", "var(--faint)");
+    svg.appendChild(t);
+  });
+}
+// Ancho real del contenedor -> el SVG se dibuja a esa resolucion (texto
+// legible en el celular, sin desplazamiento horizontal escondido).
+function anchoDe(svg, min = 320, max = 1160) {
+  const w = svg.parentElement.getBoundingClientRect().width || max;
+  return Math.max(min, Math.min(max, Math.round(w)));
+}
+function prepararSvg(svg, W, H) {
+  svg.innerHTML = "";
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+}
+function rango(mes, variable) {
+  const r = V2.rango_mes[String(mes)];
+  return r ? r[variable] : null;
+}
+function fechaBogota(f) { return new Date(f.replace(" ", "T") + (f.length > 10 ? "-05:00" : "T00:00:00-05:00")); }
+const DIAS_SEM = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+const MESES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+function etiquetaDia(f) { const d = fechaBogota(f.slice(0, 10)); return `${DIAS_SEM[d.getUTCDay()]} ${d.getUTCDate()}-${MESES_CORTO[d.getUTCMonth()]}`; }
+function fechaLarga(iso) { const [a, mm, dd] = iso.split("-").map(Number); return `${dd} de ${MESES_LARGO_V2[mm - 1]} de ${a}`; }
+const MESES_LARGO_V2 = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+function signo(v, d = 1) { return (v >= 0 ? "+" : "−") + fmt(Math.abs(v), d); }
+// texto legible encima de un relleno de color (para la letra N/A/V/P)
+function textoSobre(colorVar) {
+  const hex = cssVar(colorVar).replace("#", "");
+  if (hex.length < 6) return "#ffffff";
+  const c = [0, 2, 4].map(i => { const v = parseInt(hex.slice(i, i + 2), 16) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] > 0.3 ? "#0b1416" : "#ffffff";
+}
+// banda P_lo..P_hi a lo largo de una serie cuyo rango puede cambiar de mes a mes
+function pathBanda(xs, los, his) {
+  const top = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x},${his[i]}`).join(" ");
+  const bot = xs.map((x, i) => `L${xs[xs.length - 1 - i]},${los[xs.length - 1 - i]}`).join(" ");
+  return `${top} ${bot} Z`;
+}
+function pathLinea(xs, ys) {
+  let d = "", abierto = false;
+  xs.forEach((x, i) => {
+    if (ys[i] == null || Number.isNaN(ys[i])) { abierto = false; return; }
+    d += `${abierto ? "L" : "M"}${x},${ys[i]} `; abierto = true;
+  });
+  return d;
+}
+function etiquetasDerecha(svg, items, x, minGap = 12) {
+  const e = items.filter(Boolean).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < e.length; i++) if (e[i].y - e[i - 1].y < minGap) e[i].y = e[i - 1].y + minGap;
+  e.forEach(it => {
+    const t = svgEl("text", { x, y: it.y + 3.5, "font-size": it.size || 10.5, class: "mono", "font-weight": it.bold ? 700 : 500 });
+    t.textContent = it.texto; t.setAttribute("fill", it.color);
+    svg.appendChild(t);
+  });
+}
+
+function actualizarFrescura() {
+  const f = DATA.ultimo_dato_horario.fecha_hora;
+  const min = Math.max(0, Math.round((Date.now() - fechaBogota(f).getTime()) / 60000));
+  const hace = min < 60 ? `hace ${min} min`
+    : min < 48 * 60 ? `hace ${Math.floor(min / 60)} h${min % 60 ? " " + (min % 60) + " min" : ""}`
+    : `hace ${Math.floor(min / 1440)} días`;
+  const el = document.getElementById("frescura");
+  // Los informes llegan cada hora y el PC los sube a los :30 -- mas de 2 h sin
+  // dato nuevo ya es un retraso; mas de 6 h, casi seguro un corte de la automatizacion.
+  const cls = min <= 120 ? "ok" : min <= 360 ? "tarde" : "viejo";
+  el.className = "fresh " + cls;
+  el.textContent = cls === "ok" ? `Dato al día · ${hace}` : cls === "tarde" ? `Dato con retraso · ${hace}` : `Sin datos nuevos · ${hace}`;
+  el.title = cls === "viejo" ? "Más de 6 horas sin un informe nuevo: revisar la tarea programada del PC que descarga el correo." : "Tiempo desde la última lectura horaria publicada.";
+}
 
 // Clasificacion INSTANTANEA de un valor contra el umbral de SU mes (mismo
 // criterio que clasificar_alerta_serie en Python, sin el filtro de
@@ -765,10 +969,10 @@ function etiquetaVentana(n) {
  * figuras distintas. Graduaciones de las fronteras de zona a la derecha,
  * referencias operativas fijas (NMIF/NMIT/etc.) a la izquierda.
  */
-function renderTankGauge(svgId, valorActual, yDomain, zonas, refTicks, decimales, unidad) {
+function renderTankGauge(svgId, valorActual, yDomain, zonas, refTicks, decimales, unidad, opts = {}) {
   const svg = document.getElementById(svgId);
   svg.innerHTML = "";
-  const tankX = 58, tankW = 116, top = 22, bottom = 388, rx = 18;
+  const tankX = 84, tankW = 112, top = 20, bottom = opts.corte ? 372 : 388, rx = 16;
   const y = scaleLinear(yDomain, [bottom, top]);
 
   const clipId = svgId + "Clip";
@@ -782,142 +986,151 @@ function renderTankGauge(svgId, valorActual, yDomain, zonas, refTicks, decimales
   defs.appendChild(filter);
   svg.appendChild(defs);
 
+  // zonas de alerta como fondo del tanque (se ven en la parte vacia)
   const zonasGroup = svgEl("g", { "clip-path": `url(#${clipId})` });
   zonas.forEach(z => {
     zonasGroup.appendChild(svgEl("rect", {
-      x: tankX, y: y(z.to), width: tankW, height: Math.max(0, y(z.from) - y(z.to)),
-      fill: z.color, opacity: 0.24,
+      x: tankX, y: y(z.to), width: tankW, height: Math.max(0, y(z.from) - y(z.to)), fill: z.color, opacity: 0.3,
     }));
   });
   svg.appendChild(zonasGroup);
 
-  const valY = y(valorActual);
+  // agua neutra: el color de la alerta lo pone solo la linea del agua
+  const valY = y(Math.min(Math.max(valorActual, yDomain[0]), yDomain[1]));
   const waterGroup = svgEl("g", { "clip-path": `url(#${clipId})` });
   const wavePath = `M ${tankX - 20} ${valY}
-    C ${tankX + 8} ${valY - 8}, ${tankX + 38} ${valY + 8}, ${tankX + tankW / 2} ${valY}
-    S ${tankX + tankW - 8} ${valY - 8}, ${tankX + tankW + 20} ${valY}
+    C ${tankX + 8} ${valY - 6}, ${tankX + 38} ${valY + 6}, ${tankX + tankW / 2} ${valY}
+    S ${tankX + tankW - 8} ${valY - 6}, ${tankX + tankW + 20} ${valY}
     L ${tankX + tankW + 20} ${bottom + 10} L ${tankX - 20} ${bottom + 10} Z`;
-  waterGroup.appendChild(svgEl("path", { d: wavePath, fill: "var(--accent)", opacity: 0.82 }));
+  waterGroup.appendChild(svgEl("path", { d: wavePath, fill: "var(--agua)", opacity: 0.95 }));
   const waveInner = svgEl("g", { class: "wave-anim" });
-  waveInner.appendChild(svgEl("path", { d: wavePath, fill: "var(--accent)", opacity: 0.32 }));
+  waveInner.appendChild(svgEl("path", { d: wavePath, fill: "var(--agua-top)", opacity: 0.35 }));
   waterGroup.appendChild(waveInner);
+  // fronteras de zona trazadas a traves del tanque (tambien bajo el agua):
+  // asi se lee directo cuanto falta para cruzar al siguiente nivel
+  zonas.slice(0, -1).forEach(z => {
+    waterGroup.appendChild(svgEl("line", { x1: tankX, x2: tankX + tankW, y1: y(z.to), y2: y(z.to),
+      stroke: "var(--ink)", "stroke-width": 1, "stroke-dasharray": "3 4", opacity: 0.4 }));
+  });
+  if (opts.alerta) {
+    waterGroup.appendChild(svgEl("rect", { x: tankX, y: valY - 3, width: tankW, height: 6, fill: COLOR_SEGUIMIENTO[opts.alerta] }));
+  }
   svg.appendChild(waterGroup);
 
-  // marco nitido sobre zonas + agua (unico borde del tanque, ya no hay barra aparte)
   svg.appendChild(svgEl("rect", {
     x: tankX, y: top, width: tankW, height: bottom - top, rx,
     fill: "none", stroke: "var(--line-strong)", "stroke-width": 2.5,
   }));
 
-  // referencias operativas fijas, a la izquierda (NMIF/NMIT/NMAX_OPER o volumen muerto/max. operacion)
-  refTicks.forEach(([label, val, texto]) => {
-    const ty = y(val);
-    const lineAttrs = { x1: tankX - 7, x2: tankX, y1: ty, y2: ty, stroke: "var(--faint)" };
-    if (texto) { lineAttrs["stroke-width"] = 1.3; } else { lineAttrs["stroke-width"] = 1; lineAttrs["stroke-dasharray"] = "2 2"; }
-    svg.appendChild(svgEl("line", lineAttrs));
-    if (!texto) return;
-    const t = svgEl("text", { x: tankX - 11, y: ty + 4, "text-anchor": "end", "font-size": "11", class: "mono" });
-    t.textContent = fmt(val, decimales); t.setAttribute("fill", "var(--faint)");
+  // eje cortado: el tramo hasta el minimo fisico no se dibuja (zona muerta)
+  if (opts.corte) {
+    const zy = bottom + 8;
+    let zz = `M ${tankX - 4} ${zy}`;
+    for (let i = 0; i <= 8; i++) zz += ` L ${tankX - 4 + i * (tankW + 8) / 8} ${zy + (i % 2 ? 5 : -5)}`;
+    svg.appendChild(svgEl("path", { d: zz, fill: "none", stroke: "var(--faint)", "stroke-width": 1.3 }));
+    const t = svgEl("text", { x: tankX + tankW / 2, y: zy + 26, "text-anchor": "middle", "font-size": "10.5" });
+    t.textContent = opts.corte; t.setAttribute("fill", "var(--faint)");
     svg.appendChild(t);
-    const lab = svgEl("text", { x: tankX - 11, y: ty - 6, "text-anchor": "end", "font-size": "9.5" });
-    lab.textContent = texto; lab.setAttribute("fill", "var(--faint)");
+  }
+
+  // referencias fijas a la izquierda
+  refTicks.forEach(([label, val, texto, estilo]) => {
+    if (val < yDomain[0] || val > yDomain[1]) return;
+    const ty = y(val);
+    const punteada = !texto || estilo === "anterior";
+    svg.appendChild(svgEl("line", { x1: tankX - 7, x2: estilo === "anterior" ? tankX + tankW : tankX, y1: ty, y2: ty,
+      stroke: estilo === "anterior" ? "var(--warning)" : "var(--faint)", "stroke-width": punteada ? 1 : 1.3,
+      "stroke-dasharray": punteada ? "2 3" : "none", opacity: estilo === "anterior" ? 0.85 : 1 }));
+    if (!texto) return;
+    const color = estilo === "anterior" ? "var(--warning)" : "var(--faint)";
+    const t = svgEl("text", { x: tankX - 11, y: ty + 4, "text-anchor": "end", "font-size": "11", class: "mono" });
+    t.textContent = fmt(val, decimales); t.setAttribute("fill", color);
+    svg.appendChild(t);
+    const lab = svgEl("text", { x: tankX - 11, y: ty - 7, "text-anchor": "end", "font-size": "9.5" });
+    lab.textContent = texto; lab.setAttribute("fill", color);
     svg.appendChild(lab);
   });
 
-  // barra de alerta separada, junto al tanque -- vuelve a estar aparte (ademas
-  // del tinte que ya vive dentro del tanque) porque de un vistazo se lee mejor
-  // "en que franja estoy" cuando la zona completa (no solo su color de fondo)
-  // tiene su propio bloque solido, con la frontera exacta rotulada al lado.
-  const rulerX = tankX + tankW + 18, rulerW = 24;
+  // regla de niveles a la derecha, con la letra de cada nivel
+  const rulerX = tankX + tankW + 14, rulerW = 22;
   zonas.forEach(z => {
-    svg.appendChild(svgEl("rect", {
-      x: rulerX, y: y(z.to), width: rulerW, height: Math.max(0, y(z.from) - y(z.to)),
-      fill: z.color, opacity: 0.85, rx: 4,
-    }));
+    const y0 = y(z.to), h = Math.max(0, y(z.from) - y(z.to));
+    // solo el nivel actual a color pleno: si no, la franja mas grande (casi
+    // siempre PRIORITARIO, que cubre todo el fondo del tanque) domina la vista
+    const esActual = !opts.alerta || z.letra === LETRA_SEGUIMIENTO[opts.alerta];
+    svg.appendChild(svgEl("rect", { x: rulerX, y: y0, width: rulerW, height: h, fill: z.color, rx: 3, opacity: esActual ? 1 : 0.35 }));
+    if (h >= 15) {
+      const t = svgEl("text", { x: rulerX + rulerW / 2, y: y0 + h / 2 + 4, "text-anchor": "middle", "font-size": "10.5", "font-weight": "800", class: "mono" });
+      t.textContent = z.letra; t.setAttribute("fill", esActual ? textoSobre(z.varColor) : "var(--ink)");
+      svg.appendChild(t);
+    }
   });
-  svg.appendChild(svgEl("rect", { x: rulerX, y: top, width: rulerW, height: bottom - top, rx: 4, fill: "none", stroke: "var(--line-strong)", "stroke-width": 1 }));
+  svg.appendChild(svgEl("rect", { x: rulerX, y: top, width: rulerW, height: bottom - top, rx: 3, fill: "none", stroke: "var(--line-strong)", "stroke-width": 1 }));
   const rightX = rulerX + rulerW;
-  zonas.slice(0, -1).forEach(z => {
-    const fy = y(z.to);
-    svg.appendChild(svgEl("line", { x1: rulerX, x2: rightX + 6, y1: fy, y2: fy, stroke: "var(--panel)", "stroke-width": 1.5 }));
-    const t = svgEl("text", { x: rightX + 9, y: fy + 4, "text-anchor": "start", "font-size": "11", "font-weight": "700", class: "mono" });
-    t.textContent = fmt(z.to, decimales); t.setAttribute("fill", "var(--muted)");
-    svg.appendChild(t);
-  });
+  const marcas = zonas.slice(0, -1).map(z => ({ y: y(z.to), texto: fmt(z.to, decimales), color: "var(--muted)", bold: true, size: 11 }));
+  marcas.forEach(mk => svg.appendChild(svgEl("line", { x1: rulerX, x2: rightX + 5, y1: mk.y, y2: mk.y, stroke: "var(--panel)", "stroke-width": 1.5 })));
+  etiquetasDerecha(svg, marcas, rightX + 8, 12);
 
-  // linea del valor actual, atravesando tanque + barra de alerta
-  svg.appendChild(svgEl("line", { x1: tankX, x2: rightX, y1: valY, y2: valY, stroke: "var(--ink)", "stroke-width": 1.6, "stroke-dasharray": "3 3", opacity: 0.85 }));
+  svg.appendChild(svgEl("line", { x1: tankX, x2: rightX, y1: valY, y2: valY, stroke: "var(--ink)", "stroke-width": 1.4, "stroke-dasharray": "3 3", opacity: 0.7 }));
 
-  // placa con el valor actual y su unidad, sobre la linea de agua.
-  // El ancho se calcula segun el largo real del texto (monoespaciado a 12.5px)
-  // para que nunca quede mas angosta que el contenido y el texto se desborde.
   const textoPill = `${fmt(valorActual, decimales)} ${unidad}`;
   const pillW = textoPill.length * 7.7 + 18, pillH = 23;
   const pillY = Math.min(Math.max(valY - pillH / 2, top + 4), bottom - pillH - 4);
   svg.appendChild(svgEl("rect", {
     x: tankX + tankW / 2 - pillW / 2, y: pillY, width: pillW, height: pillH, rx: 7,
-    fill: "var(--panel)", stroke: "var(--ink)", "stroke-width": 1.3, filter: `url(#${shadowId})`,
+    fill: "var(--panel)", stroke: opts.alerta ? COLOR_SEGUIMIENTO[opts.alerta] : "var(--ink)", "stroke-width": 2.2, filter: `url(#${shadowId})`,
   }));
-  const valLabel = svgEl("text", {
-    x: tankX + tankW / 2, y: pillY + pillH / 2 + 4.5, "text-anchor": "middle",
-    "font-size": "12.5", "font-weight": "800", class: "mono",
-  });
-  valLabel.textContent = textoPill;
-  valLabel.setAttribute("fill", "var(--ink)");
+  const valLabel = svgEl("text", { x: tankX + tankW / 2, y: pillY + pillH / 2 + 4.5, "text-anchor": "middle", "font-size": "12.5", "font-weight": "800", class: "mono" });
+  valLabel.textContent = textoPill; valLabel.setAttribute("fill", "var(--ink)");
   svg.appendChild(valLabel);
+}
+
+function zonasSemaforo(u, piso, techo) {
+  return [
+    { from: piso, to: u.umbral_rojo_P10, color: COLOR_SEGUIMIENTO.ROJO, varColor: ZONA_VAR.ROJO, letra: "P" },
+    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: COLOR_SEGUIMIENTO.NARANJA, varColor: ZONA_VAR.NARANJA, letra: "V" },
+    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: COLOR_SEGUIMIENTO.AMARILLO, varColor: ZONA_VAR.AMARILLO, letra: "A" },
+    { from: u.umbral_amarillo_P50, to: techo, color: COLOR_SEGUIMIENTO.VERDE, varColor: ZONA_VAR.VERDE, letra: "N" },
+  ];
+}
+
+// Ultimo cambio de la cota maxima de operacion: si fue hace menos de 120
+// dias se marca el valor anterior en el tanque, para que se vea el cambio.
+function cambioNmaxReciente() {
+  const vig = V2.nmax_vigencia;
+  if (vig.length < 2) return null;
+  const ult = vig[vig.length - 1], ant = vig[vig.length - 2];
+  const dias = (fechaBogota(DATA.ultimo_dato_horario.fecha_hora) - fechaBogota(ult.desde)) / 86400000;
+  if (dias < 0 || dias > 120) return null;
+  const hasta = new Date(fechaBogota(ult.desde).getTime() - 86400000);
+  return { anterior: ant, actual: ult, hastaTxt: `${hasta.getUTCDate()}-${MESES_CORTO[hasta.getUTCMonth()]}` };
 }
 
 function renderTankCota(estado) {
   const ref = DATA.niveles_referencia;
-  const u = estado.umbralNivel;
-  const yDomain = [ref.NMIF, ref.NFOR + 1.2];
-  renderTankGauge("gauge-tank-cota", estado.cota, yDomain, [
-    { from: yDomain[0], to: u.umbral_rojo_P10, color: "var(--prioritario)" },
-    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--vigilancia)" },
-    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--atencion)" },
-    { from: u.umbral_amarillo_P50, to: yDomain[1], color: "var(--normal)" },
-  ], [
-    ["NFOR", ref.NFOR, null],
-    ["NMIF", ref.NMIF, "mínimo físico"],
+  const yDomain = [ref.NMIT - 3, ref.NFOR + 0.8];
+  const cambio = cambioNmaxReciente();
+  const refs = [
     ["NMIT", ref.NMIT, "mínimo técnico"],
     ["NMAX_OPER", ref.NMAX_OPER, "máx. operación"],
-  ], 1, "msnm");
-}
-
-// Misma cota de hoy que el tanque anterior, pero clasificada contra el
-// umbral DERIVADO de volumen util (no contra el umbral de cota estimado de
-// forma independiente) -- por eso su alerta siempre coincide con la del
-// tanque de volumen util, junto al que se muestra (ver umbralNivelEquiv).
-function renderTankCotaEquivalente(estado) {
-  const ref = DATA.niveles_referencia;
-  const u = estado.umbralNivelEquiv;
-  const yDomain = [ref.NMIF, ref.NFOR + 1.2];
-  renderTankGauge("gauge-tank-cota-equiv", estado.cota, yDomain, [
-    { from: yDomain[0], to: u.umbral_rojo_P10, color: "var(--prioritario)" },
-    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--vigilancia)" },
-    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--atencion)" },
-    { from: u.umbral_amarillo_P50, to: yDomain[1], color: "var(--normal)" },
-  ], [
     ["NFOR", ref.NFOR, null],
-    ["NMIF", ref.NMIF, "mínimo físico"],
-    ["NMIT", ref.NMIT, "mínimo técnico"],
-    ["NMAX_OPER", ref.NMAX_OPER, "máx. operación"],
-  ], 1, "msnm");
+  ];
+  if (cambio) refs.push(["ANT", cambio.anterior.nmax, `hasta ${cambio.hastaTxt}`, "anterior"]);
+  renderTankGauge("gauge-tank-cota", estado.cota, yDomain, zonasSemaforo(estado.umbralNivel, yDomain[0], yDomain[1]),
+    refs, 1, "msnm", { alerta: estado.alertaCota, corte: `↓ mínimo físico ${fmt(ref.NMIF, 1)}` });
 }
 
 function renderTankVolumen(estado) {
-  const u = estado.umbralVu;
-  const yMax = DATA.volumen_util_max_hm3 * 1.05;
-  const yDomain = [0, yMax];
-  renderTankGauge("gauge-tank-vu", estado.vu, yDomain, [
-    { from: 0, to: u.umbral_rojo_P10, color: "var(--prioritario)" },
-    { from: u.umbral_rojo_P10, to: u.umbral_naranja_P25, color: "var(--vigilancia)" },
-    { from: u.umbral_naranja_P25, to: u.umbral_amarillo_P50, color: "var(--atencion)" },
-    { from: u.umbral_amarillo_P50, to: yMax, color: "var(--normal)" },
-  ], [
+  const vuMax = DATA.volumen_util_max_hm3;
+  const yDomain = [0, vuMax * 1.06];
+  const cambio = cambioNmaxReciente();
+  const refs = [
     ["VACIO", 0, "volumen muerto"],
-    ["MAX_OPER", DATA.volumen_util_max_hm3, "máx. operación"],
-  ], 2, "hm³");
+    ["MAX_OPER", vuMax, "máx. operación"],
+  ];
+  if (cambio) refs.push(["ANT", cambio.anterior.vu_max, `hasta ${cambio.hastaTxt}`, "anterior"]);
+  renderTankGauge("gauge-tank-vu", estado.vu, yDomain, zonasSemaforo(estado.umbralVu, 0, yDomain[1]),
+    refs, 0, "hm³", { alerta: estado.alertaVU });
 }
 
 /* ---------------------------------------------------------------- hero: ONI semicircular dial */
@@ -973,56 +1186,53 @@ function tituloComparacion(n) {
                  : `Diferencia: cierre de ${etiquetaVentana(n)} vs. cierre del día anterior a ese`;
 }
 
+function chipCambio(valor, dec, unidad, titulo, sufijo) {
+  const up = valor >= 0;
+  return `<span class="stat-chip ${up ? "rate-up" : "rate-down"}" title="${titulo}">${up ? "▲" : "▼"} ${fmt(Math.abs(valor), dec)} ${unidad}${sufijo}</span>`;
+}
+function lineaEstado(alerta, instantanea, titulo) {
+  return `<span style="color:${INK_SEGUIMIENTO[alerta]}" title="${titulo}">● Nivel ${LABEL_SEGUIMIENTO[alerta]}</span>${notaTransicion(alerta, instantanea)}`;
+}
+const TITULO_PERSISTENCIA = () => `La alerta se confirma cuando se sostiene ${DATA.persistencia_alerta_dias} días seguidos en el mismo nivel (para arriba o para abajo), no con un solo dato -- así un aguacero puntual no la cambia por sí solo.`;
+
+// Ritmo de llenado/vaciado de los ultimos 7 dias (hm3/dia), del cierre de hace 7 dias al ultimo dato.
+function ritmoVu7d() {
+  const c7 = buscarCierre(7);
+  if (!c7) return null;
+  return (DATA.ultimo_dato_horario.volumen_util_hm3 - c7.volumen_util_hm3) / 7;
+}
+
 function renderHeroReadouts(estado) {
+  const ref = DATA.niveles_referencia;
   document.getElementById("rv-cota").textContent = fmt(estado.cota, 2) + " msnm";
-  const instCota = clasificarInstantaneo(estado.cota, estado.umbralNivel);
-  document.getElementById("status-cota").innerHTML = `<span style="color:${COLOR_SEGUIMIENTO[estado.alertaCota]}" title="La alerta se confirma cuando se sostiene ${DATA.persistencia_alerta_dias} días seguidos en el mismo nivel (para arriba o para abajo), no con un solo dato -- así un aguacero puntual no la cambia por sí solo.">● Nivel ${LABEL_SEGUIMIENTO[estado.alertaCota]}</span>${notaTransicion(estado.alertaCota, instCota)}`;
-  const cotaRateUp = estado.tendenciaCota >= 0;
-  document.getElementById("chip-cota-rate").innerHTML =
-    `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m (día)</span>`;
+  document.getElementById("status-cota").innerHTML =
+    lineaEstado(estado.alertaCota, clasificarInstantaneo(estado.cota, estado.umbralNivel), TITULO_PERSISTENCIA());
+  document.getElementById("chip-cota-rate").innerHTML = chipCambio(estado.tendenciaCota, 2, "m", tituloComparacion(estado.n), " (día)");
+  document.getElementById("chip-cota-vshoy").innerHTML = estado.n > 0
+    ? chipCambio(estado.diffHoyCota, 2, "m", `Diferencia entre el último dato de hoy y el cierre de ${etiquetaVentana(estado.n)}`, " vs. hoy") : "";
+  const margenCota = ref.NMAX_OPER - estado.cota;
+  document.getElementById("chip-cota-margen").innerHTML =
+    `<span class="stat-chip neutral" title="Distancia hasta la cota máxima de operación vigente (${fmt(ref.NMAX_OPER, 2)} msnm)">${margenCota >= 0 ? fmt(margenCota, 2) + " m bajo la máx." : fmt(-margenCota, 2) + " m sobre la máx."}</span>`;
 
-  const vsHoyCota = document.getElementById("chip-cota-vshoy");
-  if (estado.n > 0) {
-    const up = estado.diffHoyCota >= 0;
-    vsHoyCota.innerHTML = `<span class="stat-chip ${up ? "rate-up" : "rate-down"}" title="Diferencia entre el último dato de hoy y el cierre de ${etiquetaVentana(estado.n)}">${up ? "▲" : "▼"} ${fmt(Math.abs(estado.diffHoyCota), 2)} m vs. hoy</span>`;
-  } else {
-    vsHoyCota.innerHTML = "";
-  }
+  const vuMax = DATA.volumen_util_max_hm3;
+  document.getElementById("rv-vu").textContent = `${fmt(estado.vu, 0)} hm³ · ${fmt(estado.pct, 1)}%`;
+  document.getElementById("status-vu").innerHTML =
+    lineaEstado(estado.alertaVU, clasificarInstantaneo(estado.vu, estado.umbralVu), TITULO_PERSISTENCIA());
+  document.getElementById("chip-vu-rate").innerHTML = chipCambio(estado.tendenciaVU, 1, "hm³", tituloComparacion(estado.n), " (día)");
+  document.getElementById("chip-vu-vshoy").innerHTML = estado.n > 0
+    ? chipCambio(estado.diffHoyVU, 1, "hm³", `Diferencia entre el último dato de hoy y el cierre de ${etiquetaVentana(estado.n)}`, " vs. hoy") : "";
+  const falta = vuMax - estado.vu;
+  const ritmo = estado.n === 0 ? ritmoVu7d() : null;
+  let txtMargen = falta > 0 ? `faltan ${fmt(falta, 0)} hm³ para la máx.` : `${fmt(-falta, 0)} hm³ sobre la máx.`;
+  if (ritmo && ritmo > 0.5 && falta > 0) txtMargen += ` · ≈${fmt(falta / ritmo, 0)} días al ritmo de 7 días`;
+  document.getElementById("chip-vu-margen").innerHTML =
+    `<span class="stat-chip neutral" title="Volumen útil a la cota máxima de operación vigente: ${fmt(vuMax, 0)} hm³. Volumen total en el embalse: ${fmt(estado.volTotal, 0)} hm³ (incluye el volumen muerto).${ritmo ? ` Ritmo de los últimos 7 días: ${signo(ritmo, 1)} hm³/día.` : ""}">${txtMargen}</span>`;
 
-  document.getElementById("rv-vu").textContent = `${fmt(estado.vu, 2)} hm³ (${fmt(estado.pct, 1)}% útil)`;
-  const instVU = clasificarInstantaneo(estado.vu, estado.umbralVu);
-  document.getElementById("status-vu").innerHTML = `<span style="color:${COLOR_SEGUIMIENTO[estado.alertaVU]}" title="La alerta se confirma cuando se sostiene ${DATA.persistencia_alerta_dias} días seguidos en el mismo nivel (para arriba o para abajo), no con un solo dato -- así un aguacero puntual no la cambia por sí solo.">● Nivel ${LABEL_SEGUIMIENTO[estado.alertaVU]}</span>${notaTransicion(estado.alertaVU, instVU)}`;
-  const vuRateUp = estado.tendenciaVU >= 0;
-  const pctTotal = estado.volTotal / DATA.volumen_total_max_hm3 * 100;
-  document.getElementById("chip-vu-total").innerHTML =
-    `<span class="stat-chip neutral" title="Volumen total en el embalse a esa fecha, incluyendo el volumen muerto que no es aprovechable (${fmt(estado.volTotal, 2)} hm³)">${fmt(pctTotal, 1)}% total</span>`;
-  document.getElementById("chip-vu-rate").innerHTML =
-    `<span class="stat-chip ${vuRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${vuRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaVU), 1)} hm³ (día)</span>`;
-
-  const vsHoyVu = document.getElementById("chip-vu-vshoy");
-  if (estado.n > 0) {
-    const up = estado.diffHoyVU >= 0;
-    vsHoyVu.innerHTML = `<span class="stat-chip ${up ? "rate-up" : "rate-down"}" title="Diferencia entre el último dato de hoy y el cierre de ${etiquetaVentana(estado.n)}">${up ? "▲" : "▼"} ${fmt(Math.abs(estado.diffHoyVU), 1)} hm³ vs. hoy</span>`;
-  } else {
-    vsHoyVu.innerHTML = "";
-  }
-
-  // Cota equivalente: misma lectura y tendencia que el tanque de cota de
-  // arriba (es la misma cota de hoy) -- lo único distinto es contra qué
-  // umbral se clasifica, por eso comparte fecha/valor con "cota" y no tiene
-  // sus propios campos de valor en el estado.
-  document.getElementById("rv-cota-equiv").textContent = fmt(estado.cota, 2) + " msnm";
-  const instCotaEquiv = clasificarInstantaneo(estado.cota, estado.umbralNivelEquiv);
-  document.getElementById("status-cota-equiv").innerHTML = `<span style="color:${COLOR_SEGUIMIENTO[estado.alertaCotaEquiv]}" title="Mismo umbral de volumen útil, expresado en msnm con la curva cota-volumen vigente hoy -- por eso esta alerta siempre coincide con la de volumen útil.">● Nivel ${LABEL_SEGUIMIENTO[estado.alertaCotaEquiv]}</span>${notaTransicion(estado.alertaCotaEquiv, instCotaEquiv)}`;
-  document.getElementById("chip-cota-equiv-rate").innerHTML =
-    `<span class="stat-chip ${cotaRateUp ? "rate-up" : "rate-down"}" title="${tituloComparacion(estado.n)}">${cotaRateUp ? "▲" : "▼"} ${fmt(Math.abs(estado.tendenciaCota), 2)} m (día)</span>`;
-  const vsHoyCotaEquiv = document.getElementById("chip-cota-equiv-vshoy");
-  if (estado.n > 0) {
-    const up = estado.diffHoyCota >= 0;
-    vsHoyCotaEquiv.innerHTML = `<span class="stat-chip ${up ? "rate-up" : "rate-down"}" title="Diferencia entre el último dato de hoy y el cierre de ${etiquetaVentana(estado.n)}">${up ? "▲" : "▼"} ${fmt(Math.abs(estado.diffHoyCota), 2)} m vs. hoy</span>`;
-  } else {
-    vsHoyCotaEquiv.innerHTML = "";
-  }
+  // La cota equivalente (umbral de volumen util llevado a msnm) ya no tiene
+  // tanque propio: daba la misma cota que el primer tanque con otros cortes.
+  const ue = estado.umbralNivelEquiv;
+  document.getElementById("equiv-note").innerHTML =
+    `Llevado a cota con la curva vigente, este umbral equivale a <b>${fmt(ue.umbral_amarillo_P50, 1)} / ${fmt(ue.umbral_naranja_P25, 1)} / ${fmt(ue.umbral_rojo_P10, 1)} msnm</b> (N/A, A/V, V/P).`;
 
   const r = DATA.reporte_actual;
   const oniColor = r.oni.oni_ultimo >= DATA.umbral_oni ? "var(--nino)" : r.oni.oni_ultimo <= -DATA.umbral_oni ? "var(--nina)" : "var(--neutral-phase)";
@@ -1033,6 +1243,25 @@ function renderHeroReadouts(estado) {
     ? `<span style="color:${oniColor}">Episodio El Niño confirmado</span>`
     : `<span style="color:${oniColor}">En desarrollo · <span class="stat-chip pct" style="font-size:13px;padding:1px 8px;">${r.oni.temporadas_consecutivas_sobre_umbral}/5 temporadas</span></span>`;
   document.getElementById("oni-sub").textContent = r.oni.ultima_temporada + (r.oni.intensidad_actual !== "N/A" ? " · intensidad " + r.oni.intensidad_actual : "");
+}
+
+function renderOniSpark() {
+  const svg = document.getElementById("oni-spark");
+  svg.innerHTML = "";
+  const datos = DATA.serie_oni.slice(-12);
+  const W = 230, H = 70, M = { l: 6, r: 6, t: 8, b: 16 };
+  const esc = niceScale(Math.min(-0.5, ...datos.map(d => d.oni)), Math.max(0.5, ...datos.map(d => d.oni)), 3);
+  const x = scaleLinear([0, datos.length - 1], [M.l, W - M.r]);
+  const y = scaleLinear([esc.min, esc.max], [H - M.b, M.t]);
+  svg.appendChild(svgEl("line", { x1: M.l, x2: W - M.r, y1: y(DATA.umbral_oni), y2: y(DATA.umbral_oni), stroke: "var(--nino)", "stroke-dasharray": "3 3", opacity: 0.7 }));
+  svg.appendChild(svgEl("line", { x1: M.l, x2: W - M.r, y1: y(0), y2: y(0), stroke: "var(--line-strong)" }));
+  svg.appendChild(svgEl("path", { d: pathLinea(datos.map((_, i) => x(i)), datos.map(d => y(d.oni))), fill: "none", stroke: "var(--nino)", "stroke-width": 2 }));
+  datos.forEach((d, i) => svg.appendChild(svgEl("circle", { cx: x(i), cy: y(d.oni), r: i === datos.length - 1 ? 3.5 : 2, fill: "var(--nino)" })));
+  [0, datos.length - 1].forEach(i => {
+    const t = svgEl("text", { x: x(i), y: H - 3, "text-anchor": i === 0 ? "start" : "end", "font-size": "9.5", class: "mono" });
+    t.textContent = datos[i].temporada; t.setAttribute("fill", "var(--faint)");
+    svg.appendChild(t);
+  });
 }
 
 function formatearFechaHora(f) {
@@ -1075,13 +1304,15 @@ function renderHallazgo(estado) {
     ? `Con el último dato disponible (${formatearFechaHora(estado.fecha)})`
     : `Con el cierre de ${etiquetaVentana(estado.n)} (${estado.fecha})`;
   const refCota = estado.n === 0 ? "el cierre de ayer" : "el día anterior";
-  el.innerHTML = `<b>${intro}:</b> la cota está en nivel <b>${LABEL_SEGUIMIENTO[estado.alertaCota]}</b>
-    (<span class="stat-chip ${estado.tendenciaCota >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaCota,2)} m</span> vs. ${refCota}),
-    pero el volumen útil ya está en nivel <b>${LABEL_SEGUIMIENTO[estado.alertaVU]}</b>
-    (<span class="stat-chip pct" style="font-size:13px;padding:1px 8px;">${fmt(estado.pct,1)}%</span> de llenado,
-    <span class="stat-chip ${estado.tendenciaVU >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${fmt(estado.tendenciaVU,1)} hm³</span> vs. ${refCota}) —
-    dos lecturas del mismo instante pueden diferir porque la relación cota-volumen no es lineal. Cambia el día
-    arriba para ver si la alerta se sostiene o solo fue un dato puntual.`;
+  const chipCota = `<span class="stat-chip ${estado.tendenciaCota >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${signo(estado.tendenciaCota, 2)} m</span>`;
+  const chipVu = `<span class="stat-chip ${estado.tendenciaVU >= 0 ? "rate-up" : "rate-down"}" style="font-size:13px;padding:1px 8px;">${signo(estado.tendenciaVU, 1)} hm³</span>`;
+  const nivel = a => `<b style="color:${INK_SEGUIMIENTO[a]}">${LABEL_SEGUIMIENTO[a]}</b>`;
+  // v1 decia siempre "la cota esta en X, PERO el volumen util YA esta en Y",
+  // aun cuando X e Y eran el mismo nivel.
+  const cuerpo = estado.alertaCota === estado.alertaVU
+    ? `la cota y el volumen útil están los dos en nivel ${nivel(estado.alertaCota)} (cota ${chipCota}, volumen útil ${chipVu} vs. ${refCota}; ${fmt(estado.pct, 1)}% de llenado).`
+    : `la cota está en nivel ${nivel(estado.alertaCota)} (${chipCota} vs. ${refCota}) y el volumen útil en nivel ${nivel(estado.alertaVU)} (${chipVu}; ${fmt(estado.pct, 1)}% de llenado). Pueden diferir porque la relación cota-volumen no es lineal y cada uno tiene sus propios umbrales del mes.`;
+  el.innerHTML = `<b>${intro}:</b> ${cuerpo} Cambia el día arriba para ver si la alerta se sostiene.`;
 }
 
 /* ---------------------------------------------------------------- caudal y niveles recientes (grid de mini-graficos) */
@@ -1090,139 +1321,245 @@ function renderHallazgo(estado) {
 const MESES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
   "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-const RF_VARS = [
-  { key: "aportes", label: "Caudal afluente", unit: "m³/s", dec: 2,
-    desc: "Agua que entra al embalse desde la cuenca del Sinú. El % del promedio mensual se muestra en grande al inicio del tablero." },
-  { key: "aguas_abajo", label: "Caudal aguas abajo", unit: "m³/s", dec: 2,
-    desc: "Agua liberada del embalse: turbinada + vertida." },
-  { key: "turbinado", label: "Turbinado (generación)", unit: "m³/s", dec: 2,
-    desc: "De lo liberado, cuánto pasó realmente por las turbinas." },
-  { key: "nivel", label: "Cota del embalse", unit: "msnm", dec: 2,
-    desc: "Nivel de la superficie del agua." },
-  { key: "volumen_util_hm3", label: "Volumen útil", unit: "hm³", dec: 2,
-    desc: "Agua realmente aprovechable para generación." },
-];
-
-function serieRecienteVar(key) {
-  const dias = CIERRES_DIARIOS.filter(c => c.dias_atras <= 30 && c[key] != null)
-    .slice().sort((a, b) => b.dias_atras - a.dias_atras); // mas antiguo -> mas reciente
-  // pct_llenado viaja siempre junto al valor (aunque key no sea volumen_util_hm3)
-  // para poder anotar el % de llenado en el mini-grafico de volumen util.
-  const puntos = dias.map(c => ({ fecha: c.fecha, valor: c[key], pct: c.pct_llenado }));
-  const hoy = DATA.ultimo_dato_horario;
-  if (hoy[key] != null) puntos.push({ fecha: hoy.fecha_hora.slice(0, 10), valor: hoy[key], pct: hoy.pct_llenado, esHoy: true });
-  return puntos;
-}
-
-// "Asi esta el embalse ahora": la misma info que RF_VARS pero SOLO el valor
-// (sin graficar) -- responde "que dice el reporte de esta hora" de un
-// vistazo, arriba de todo. Las graficas de estas mismas variables viven mas
-// abajo, en su propio cajon ("Graficas del reporte").
+// "Asi esta el embalse ahora" (v2): descarga y balance en vez de dos
+// tarjetas identicas (aguas abajo = turbinado cuando no hay vertimiento), y
+// cota/volumen contra la MEDIANA del mes en unidades reales (m, hm3) -- el
+// "100% de lo normal" de la cota en v1 no significaba nada.
 function renderValoresGrid() {
-  document.getElementById("valores-grid").innerHTML = RF_VARS.map(v => {
-    const datos = serieRecienteVar(v.key);
-    if (!datos.length) return "";
-    const ultimo = datos[datos.length - 1];
-    const prom = DATA.promedios_mes_actual[v.key] || {};
-    const pctSufijo = v.key === "volumen_util_hm3" && ultimo.pct != null ? ` (${fmt(ultimo.pct, 1)}% útil)` : "";
-    const sub = prom.todos != null
-      ? `${fmt(ultimo.valor / prom.todos * 100, 0)}% de lo normal en ${MESES_LARGO[prom_mes - 1]}`
-      : "";
-    return `
-      <div class="valor-item">
-        <div class="rf-card-label">${v.label}</div>
-        <div class="valor-num">${fmt(ultimo.valor, v.dec)} ${v.unit}${pctSufijo}</div>
-        <div class="valor-sub">${sub}</div>
-      </div>`;
-  }).join("");
+  const u = DATA.ultimo_dato_horario;
+  const mes = parseInt(u.fecha_hora.slice(5, 7), 10), nm = MESES_LARGO[mes - 1];
+  const ra = rango(mes, "aportes"), rn = rango(mes, "nivel"), rv = rango(mes, "volumen_util_hm3");
+  const vertido = Math.max(0, u.aguas_abajo - u.turbinado);
+  const bal = u.aportes - u.aguas_abajo;
+  const items = [
+    { label: "Caudal afluente", num: `${fmt(u.aportes, 1)} <small>m³/s</small>`,
+      sub: ra ? `<b>${fmt(u.aportes / ra.media * 100, 0)}%</b> del promedio de ${nm} · normal ${fmt(ra.p25, 0)}–${fmt(ra.p75, 0)}` : "" },
+    { label: "Descarga aguas abajo", num: `${fmt(u.aguas_abajo, 1)} <small>m³/s</small>`,
+      sub: vertido < 1 ? `<b>100%</b> por turbinas · sin vertimiento` : `turbinado ${fmt(u.turbinado, 1)} · <b>vertido ${fmt(vertido, 1)}</b>` },
+    { label: "Balance del embalse", num: `<span style="color:${bal >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(bal, 1)}</span> <small>m³/s</small>`,
+      sub: `≈ <b>${signo(bal * M3S_A_HM3_DIA, 1)} hm³/día</b> · el embalse ${bal >= 0 ? "sube" : "baja"}` },
+    { label: "Cota del embalse", num: `${fmt(u.nivel, 2)} <small>msnm</small>`,
+      sub: (rn ? `<b>${signo(u.nivel - rn.p50, 2)} m</b> vs. la mediana de ${nm} · ` : "") + `${fmt(DATA.niveles_referencia.NMAX_OPER - u.nivel, 2)} m bajo la máx.` },
+    { label: "Volumen útil", num: `${fmt(u.volumen_util_hm3, 0)} <small>hm³ · ${fmt(u.pct_llenado, 1)}%</small>`,
+      sub: (rv ? `<b>${signo(u.volumen_util_hm3 - rv.p50, 0)} hm³</b> vs. la mediana de ${nm} · ` : "") + `faltan ${fmt(DATA.volumen_util_max_hm3 - u.volumen_util_hm3, 0)} hm³` },
+  ];
+  document.getElementById("valores-grid").innerHTML = items.map(it => `
+    <div class="valor-item">
+      <div class="rf-card-label">${it.label}</div>
+      <div class="valor-num">${it.num}</div>
+      <div class="valor-sub">${it.sub}</div>
+    </div>`).join("");
 }
 
-function renderMiniChart(meta) {
-  const svg = document.getElementById(`chart-rf-${meta.key}`);
-  svg.innerHTML = "";
-  const datos = serieRecienteVar(meta.key);
-  const prom = DATA.promedios_mes_actual[meta.key] || {};
-  if (datos.length < 2) return;
-
-  const refs = [
-    prom.todos != null ? { valor: prom.todos, color: "var(--neutral-phase)" } : null,
-    prom.nino != null ? { valor: prom.nino, color: "var(--nino)" } : null,
-    prom.nina != null ? { valor: prom.nina, color: "var(--nina)" } : null,
-  ].filter(Boolean);
-
-  const W = 460, H = 210, M = { top: 12, right: 36, bottom: 24, left: 50 };
-  const x = scaleLinear([0, datos.length - 1], [M.left, W - M.right]);
-  const vals = datos.map(d => d.valor).concat(refs.map(r => r.valor));
-  const yMin = Math.min(...vals) * 0.94, yMax = Math.max(...vals) * 1.06;
-  const y = scaleLinear([yMin, yMax], [H - M.bottom, M.top]);
-
-  // cuadricula del eje Y (min/medio/max), mismo patron que los demas graficos del tablero
-  [yMin, (yMin + yMax) / 2, yMax].forEach(v => {
-    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
-    const t = svgEl("text", { x: M.left - 8, y: y(v) + 3.5, "text-anchor": "end", "font-size": "9.5", class: "mono" });
-    t.textContent = fmt(v, meta.dec); t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
+/* ---------------------------------------------------------------- graficas del reporte (v2) */
+let rfVentana = 30;
+const RF_CARDS = [
+  { key: "aportes", label: "Caudal afluente", desc: "Agua que entra al embalse desde la cuenca del Sinú, contra el rango normal del mes." },
+  { key: "descarga", label: "Descarga aguas abajo", desc: "Lo que sale del embalse: turbinado (generación) más vertimiento." },
+  { key: "balance", label: "Balance diario", desc: "Lo que entra menos lo que sale. Positivo: el embalse sube." },
+  { key: "nivel", label: "Cota del embalse", desc: "Contra las bandas de alerta de cada mes y la cota máxima de operación." },
+  { key: "volumen_util_hm3", label: "Volumen útil", desc: "Agua aprovechable para generación, contra las bandas de alerta del mes." },
+  { key: "acumulado", label: "Aportes acumulados del mes", desc: "Agua que ha entrado en el mes, contra lo normal a la misma fecha." },
+];
+function serieV2(dias) {
+  const hoy = DATA.ultimo_dato_horario.fecha_hora.slice(0, 10);
+  return V2.diario_reciente.slice(-dias).map(d => ({ ...d, mes: parseInt(d.fecha.slice(5, 7), 10), esHoy: d.fecha === hoy }));
+}
+function nmaxEn(fecha) {
+  let v = V2.nmax_vigencia[0];
+  V2.nmax_vigencia.forEach(t => { if (t.desde <= fecha) v = t; });
+  return v;
+}
+function marcoMini(key) {
+  const svg = document.getElementById(`chart-rf-${key}`);
+  const W = anchoDe(svg, 300, 640), H = W < 420 ? 196 : 212;
+  prepararSvg(svg, W, H);
+  return { svg, W, H, M: { top: 12, right: 58, bottom: 24, left: W < 420 ? 44 : 52 } };
+}
+function ejeXDias(c, etiquetas, x) {
+  const n = etiquetas.length, nT = c.W < 420 ? 3 : 5;
+  [...new Set(Array.from({ length: nT }, (_, i) => Math.round(i * (n - 1) / (nT - 1))))].forEach(i => {
+    const t = svgEl("text", { x: x(i), y: c.H - 6, "text-anchor": i === 0 ? "start" : i === n - 1 ? "end" : "middle", "font-size": "10", class: "mono" });
+    t.textContent = etiquetas[i]; t.setAttribute("fill", "var(--faint)");
+    c.svg.appendChild(t);
   });
-
-  refs.forEach(r => {
-    svg.appendChild(svgEl("line", {
-      x1: M.left, x2: W - M.right, y1: y(r.valor), y2: y(r.valor),
-      stroke: r.color, "stroke-width": 1.3, "stroke-dasharray": "4 3", opacity: 0.8,
-    }));
+}
+function etiquetaCorta(f) { return `${parseInt(f.slice(8, 10), 10)}-${MESES_CORTO[parseInt(f.slice(5, 7), 10) - 1]}`; }
+function hoverMini(c, n, x, filasFn, puntosFn) {
+  const vline = svgEl("line", { y1: c.M.top, y2: c.H - c.M.bottom, stroke: "var(--line-strong)", opacity: 0 });
+  c.svg.appendChild(vline);
+  const dots = puntosFn ? puntosFn(0).map(p => { const d = svgEl("circle", { r: 4, fill: p.color, stroke: "var(--panel)", "stroke-width": 1.5, opacity: 0 }); c.svg.appendChild(d); return d; }) : [];
+  const ov = svgEl("rect", { x: c.M.left, y: 0, width: c.W - c.M.left - c.M.right, height: c.H, fill: "transparent" });
+  c.svg.appendChild(ov);
+  ov.addEventListener("mousemove", evt => {
+    const pt = c.svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+    const loc = pt.matrixTransform(c.svg.getScreenCTM().inverse());
+    const i = Math.max(0, Math.min(n - 1, Math.round((loc.x - c.M.left) / (c.W - c.M.left - c.M.right) * (n - 1))));
+    vline.setAttribute("x1", x(i)); vline.setAttribute("x2", x(i)); vline.setAttribute("opacity", 0.6);
+    if (puntosFn) puntosFn(i).forEach((p, k) => { dots[k].setAttribute("cx", x(i)); dots[k].setAttribute("cy", p.y); dots[k].setAttribute("opacity", p.y == null ? 0 : 1); });
+    showTip(filasFn(i), evt);
   });
+  ov.addEventListener("mouseleave", () => { vline.setAttribute("opacity", 0); dots.forEach(d => d.setAttribute("opacity", 0)); hideTip(); });
+}
+const fila = (k, v) => `<div class="tt-row"><span>${k}</span><b>${v}</b></div>`;
 
-  // etiquetas de valor al final de cada linea de referencia (anti-colision simple)
-  const etiquetas = refs.map(r => ({ ...r, ly: y(r.valor) })).sort((a, b) => a.ly - b.ly);
-  for (let i = 1; i < etiquetas.length; i++) {
-    if (etiquetas[i].ly - etiquetas[i - 1].ly < 10) etiquetas[i].ly = etiquetas[i - 1].ly + 10;
-  }
-  etiquetas.forEach(r => {
-    const t = svgEl("text", { x: W - M.right + 4, y: r.ly + 3, "font-size": "9", class: "mono", fill: r.color });
-    t.textContent = fmt(r.valor, meta.dec);
-    svg.appendChild(t);
+function miniAportes(datos) {
+  const c = marcoMini("aportes"), { svg, W, H, M } = c;
+  const r = datos.map(d => rango(d.mes, "aportes"));
+  const vals = datos.map(d => d.aportes);
+  const esc = niceScale(0, Math.max(...vals, ...r.map(q => q ? q.p90 : 0)), 5);
+  const x = scaleLinear([0, datos.length - 1], [M.left, W - M.right]), y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  ejeY(svg, esc, y, M.left, W - M.right, 10);
+  const xs = datos.map((_, i) => x(i));
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, r.map(q => y(q.p10)), r.map(q => y(q.p90))), fill: "var(--neutral-phase)", opacity: 0.12 }));
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, r.map(q => y(q.p25)), r.map(q => y(q.p75))), fill: "var(--neutral-phase)", opacity: 0.22 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, r.map(q => y(q.p50))), fill: "none", stroke: "var(--neutral-phase)", "stroke-width": 1.3, "stroke-dasharray": "4 3" }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, r.map(q => q.nino_p50 == null ? null : y(q.nino_p50))), fill: "none", stroke: "var(--nino)", "stroke-width": 1.3, "stroke-dasharray": "4 3" }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, vals.map(y)), fill: "none", stroke: "var(--accent)", "stroke-width": 2 }));
+  svg.appendChild(svgEl("circle", { cx: xs[xs.length - 1], cy: y(vals[vals.length - 1]), r: 4.5, fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2 }));
+  const ru = r[r.length - 1];
+  etiquetasDerecha(svg, [
+    { y: y(ru.p50), texto: `med ${fmt(ru.p50, 0)}`, color: "var(--muted)" },
+    ru.nino_p50 != null ? { y: y(ru.nino_p50), texto: `Niño ${fmt(ru.nino_p50, 0)}`, color: "var(--nino)" } : null,
+  ], W - M.right + 4, 11);
+  ejeXDias(c, datos.map(d => etiquetaCorta(d.fecha)), x);
+  hoverMini(c, datos.length, x, i => `<b>${datos[i].fecha}${datos[i].esHoy ? " · hoy (parcial)" : ""}</b>`
+    + fila("Caudal afluente", `${fmt(datos[i].aportes, 1)} m³/s`)
+    + fila(`Rango normal (P25–P75)`, `${fmt(r[i].p25, 0)}–${fmt(r[i].p75, 0)}`)
+    + fila("Mediana del mes", `${fmt(r[i].p50, 0)}`)
+    + (r[i].nino_p50 != null ? fila("Mediana en El Niño", `${fmt(r[i].nino_p50, 0)}`) : ""),
+    i => [{ y: y(vals[i]), color: "var(--accent)" }]);
+  return `${fmt(DATA.ultimo_dato_horario.aportes, 1)} <small>m³/s</small>`;
+}
+
+function miniDescarga(datos) {
+  const c = marcoMini("descarga"), { svg, W, H, M } = c;
+  const turb = datos.map(d => d.turbinado ?? 0), tot = datos.map(d => Math.max(d.aguas_abajo ?? 0, d.turbinado ?? 0));
+  const esc = niceScale(0, Math.max(...tot), 5);
+  const x = scaleLinear([0, datos.length - 1], [M.left, W - M.right]), y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  ejeY(svg, esc, y, M.left, W - M.right, 10);
+  const xs = datos.map((_, i) => x(i));
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, turb.map(y), tot.map(y)), fill: "var(--vertido)", opacity: 0.55 }));
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, turb.map(() => y(0)), turb.map(y)), fill: "var(--gen)", opacity: 0.16 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, turb.map(y)), fill: "none", stroke: "var(--gen)", "stroke-width": 1.8 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, tot.map(y)), fill: "none", stroke: "var(--vertido)", "stroke-width": 1.2 }));
+  ejeXDias(c, datos.map(d => etiquetaCorta(d.fecha)), x);
+  hoverMini(c, datos.length, x, i => `<b>${datos[i].fecha}</b>` + fila("Descarga total", `${fmt(tot[i], 1)} m³/s`)
+    + fila("Turbinado", `${fmt(turb[i], 1)} m³/s`) + fila("Vertimiento", `${fmt(tot[i] - turb[i], 1)} m³/s`),
+    i => [{ y: y(tot[i]), color: "var(--vertido)" }, { y: y(turb[i]), color: "var(--gen)" }]);
+  const u = DATA.ultimo_dato_horario, vert = Math.max(0, u.aguas_abajo - u.turbinado);
+  return u.aguas_abajo > 0 ? `${fmt(u.aguas_abajo, 1)} <small>m³/s · ${fmt(u.turbinado / u.aguas_abajo * 100, 0)}% turbinado</small>` : `0 <small>m³/s</small>`;
+}
+
+function miniBalance(datos) {
+  const c = marcoMini("balance"), { svg, W, H, M } = c;
+  const bal = datos.map(d => (d.aportes - d.aguas_abajo) * M3S_A_HM3_DIA);
+  const lim = Math.max(1, ...bal.map(Math.abs));
+  const esc = niceScale(-lim, lim, 5);
+  const x = scaleLinear([-0.5, datos.length - 0.5], [M.left, W - M.right]), y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  ejeY(svg, esc, y, M.left, W - M.right, 10);
+  svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(0), y2: y(0), stroke: "var(--line-strong)", "stroke-width": 1.2 }));
+  const bw = Math.max(2, (W - M.left - M.right) / datos.length * 0.7);
+  bal.forEach((b, i) => svg.appendChild(svgEl("rect", { x: x(i) - bw / 2, y: Math.min(y(b), y(0)), width: bw, height: Math.max(1, Math.abs(y(b) - y(0))),
+    fill: b >= 0 ? "var(--bal-up)" : "var(--bal-down)", rx: Math.min(2, bw / 3), opacity: datos[i].esHoy ? 0.6 : 0.9 })));
+  const suma = bal.reduce((a, b) => a + b, 0);
+  etiquetasDerecha(svg, [{ y: M.top + 4, texto: `Σ ${signo(suma, 0)}`, color: suma >= 0 ? "var(--bal-up)" : "var(--bal-down)", bold: true }], W - M.right + 4);
+  ejeXDias(c, datos.map(d => etiquetaCorta(d.fecha)), x);
+  hoverMini(c, datos.length, x, i => `<b>${datos[i].fecha}${datos[i].esHoy ? " · hoy (parcial)" : ""}</b>`
+    + fila("Balance", `${signo(bal[i], 1)} hm³/día`) + fila("Entra", `${fmt(datos[i].aportes, 1)} m³/s`) + fila("Sale", `${fmt(datos[i].aguas_abajo, 1)} m³/s`)
+    + fila(`Acumulado en ${datos.length} días`, `${signo(suma, 0)} hm³`));
+  const u = DATA.ultimo_dato_horario, b = (u.aportes - u.aguas_abajo) * M3S_A_HM3_DIA;
+  return `<span style="color:${b >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(b, 1)}</span> <small>hm³/día ahora</small>`;
+}
+
+// Cota y volumen util: la linea contra las 4 bandas de alerta del mes de
+// cada dia (cambian de golpe al cambiar el mes) y la cota maxima vigente.
+function miniNivelVu(key) {
+  const datos = serieV2(rfVentana);
+  const esVu = key === "volumen_util_hm3";
+  const c = marcoMini(key), { svg, W, H, M } = c;
+  const umb = (esVu ? DATA.umbrales_vu_por_mes : DATA.umbrales_nivel_por_mes);
+  const u = datos.map(d => umb.find(t => t.mes === d.mes));
+  const tope = datos.map(d => esVu ? nmaxEn(d.fecha).vu_max : nmaxEn(d.fecha).nmax);
+  const vals = datos.map(d => d[key]);
+  const lo = Math.min(...vals, ...u.map(t => t.umbral_rojo_P10)), hi = Math.max(...vals, ...tope);
+  const pad = (hi - lo) * 0.06;
+  const esc = niceScale(lo - pad, hi + pad, 5);
+  const x = scaleLinear([0, datos.length - 1], [M.left, W - M.right]), y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  const xs = datos.map((_, i) => x(i));
+  const clamp = v => y(Math.max(esc.min, Math.min(esc.max, v)));
+  [["ROJO", () => esc.min, t => t.umbral_rojo_P10], ["NARANJA", t => t.umbral_rojo_P10, t => t.umbral_naranja_P25],
+   ["AMARILLO", t => t.umbral_naranja_P25, t => t.umbral_amarillo_P50], ["VERDE", t => t.umbral_amarillo_P50, () => esc.max]]
+    .forEach(([k, f0, f1]) => {
+      svg.appendChild(svgEl("path", { d: pathBanda(xs, u.map(t => clamp(f0(t))), u.map(t => clamp(f1(t)))), fill: COLOR_SEGUIMIENTO[k], opacity: 0.3 }));
+      // letra del nivel en el borde derecho de su banda (ultimo dia)
+      const tl = u[u.length - 1], y0 = clamp(f0(tl)), y1 = clamp(f1(tl));
+      if (y0 - y1 >= 13) {
+        const t = svgEl("text", { x: W - M.right - 6, y: (y0 + y1) / 2 + 4, "text-anchor": "end", "font-size": "10.5", "font-weight": "800", class: "mono" });
+        t.textContent = LETRA_SEGUIMIENTO[k]; t.setAttribute("fill", INK_SEGUIMIENTO[k]); svg.appendChild(t);
+      }
+    });
+  ejeY(svg, esc, y, M.left, W - M.right, 10);
+  // tope vigente, escalonado (p.ej. 128,5 -> 130,5 el 11-nov)
+  let dTope = "";
+  tope.forEach((v, i) => { dTope += i === 0 ? `M${xs[0]},${y(v)} ` : (v !== tope[i - 1] ? `L${(xs[i] + xs[i - 1]) / 2},${y(tope[i - 1])} L${(xs[i] + xs[i - 1]) / 2},${y(v)} ` : "") + `L${xs[i]},${y(v)} `; });
+  svg.appendChild(svgEl("path", { d: dTope, fill: "none", stroke: "var(--ink)", "stroke-width": 1.3, "stroke-dasharray": "5 3", opacity: 0.7 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, vals.map(y)), fill: "none", stroke: "var(--accent)", "stroke-width": 2.2 }));
+  svg.appendChild(svgEl("circle", { cx: xs[xs.length - 1], cy: y(vals[vals.length - 1]), r: 4.5, fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2 }));
+  etiquetasDerecha(svg, [{ y: y(tope[tope.length - 1]), texto: `máx ${fmt(tope[tope.length - 1], esVu ? 0 : 1)}`, color: "var(--muted)" }], W - M.right + 4);
+  ejeXDias(c, datos.map(d => etiquetaCorta(d.fecha)), x);
+  const dec = esVu ? 0 : 2, unidad = esVu ? "hm³" : "msnm";
+  const nivelDe = (v, t) => v < t.umbral_rojo_P10 ? "ROJO" : v < t.umbral_naranja_P25 ? "NARANJA" : v < t.umbral_amarillo_P50 ? "AMARILLO" : "VERDE";
+  hoverMini(c, datos.length, x, i => `<b>${datos[i].fecha}${datos[i].esHoy ? " · hoy (parcial)" : ""}</b>`
+    + fila(esVu ? "Volumen útil" : "Cota", `${fmt(vals[i], dec)} ${unidad}`)
+    + fila("Banda del mes", `<span style="color:${INK_SEGUIMIENTO[nivelDe(vals[i], u[i])]}">${LABEL_SEGUIMIENTO[nivelDe(vals[i], u[i])]}</span>`)
+    + fila("Cortes N/A · A/V · V/P", `${fmt(u[i].umbral_amarillo_P50, dec)} · ${fmt(u[i].umbral_naranja_P25, dec)} · ${fmt(u[i].umbral_rojo_P10, dec)}`)
+    + fila("Máx. operación vigente", `${fmt(tope[i], esVu ? 0 : 1)} ${unidad}`),
+    i => [{ y: y(vals[i]), color: "var(--accent)" }]);
+  const ud = DATA.ultimo_dato_horario;
+  return esVu ? `${fmt(ud.volumen_util_hm3, 0)} <small>hm³ · ${fmt(ud.pct_llenado, 1)}%</small>` : `${fmt(ud.nivel, 2)} <small>msnm</small>`;
+}
+
+function miniAcumulado() {
+  const c = marcoMini("acumulado"), { svg, W, H, M } = c;
+  const a = V2.acumulado_mes, { anio } = mesAnioActual();
+  const diasMes = new Date(anio, a.mes, 0).getDate();
+  const normalFin = a.normal_dia_hm3 * diasMes, ninoFin = a.nino_dia_hm3 ? a.nino_dia_hm3 * diasMes : 0;
+  const ult = a.serie[a.serie.length - 1];
+  const esc = niceScale(0, Math.max(normalFin, ninoFin, ult[1]), 5);
+  const x = scaleLinear([0, diasMes], [M.left, W - M.right]), y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  ejeY(svg, esc, y, M.left, W - M.right, 10);
+  svg.appendChild(svgEl("line", { x1: x(0), y1: y(0), x2: x(diasMes), y2: y(normalFin), stroke: "var(--neutral-phase)", "stroke-width": 1.4, "stroke-dasharray": "4 3" }));
+  if (a.nino_dia_hm3) svg.appendChild(svgEl("line", { x1: x(0), y1: y(0), x2: x(diasMes), y2: y(ninoFin), stroke: "var(--nino)", "stroke-width": 1.3, "stroke-dasharray": "4 3" }));
+  const xs = [x(0), ...a.serie.map(p => x(p[0]))], ys = [y(0), ...a.serie.map(p => y(p[1]))];
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, xs.map(() => y(0)), ys), fill: "var(--accent)", opacity: 0.14 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, ys), fill: "none", stroke: "var(--accent)", "stroke-width": 2.2 }));
+  svg.appendChild(svgEl("circle", { cx: x(ult[0]), cy: y(ult[1]), r: 4.5, fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2 }));
+  etiquetasDerecha(svg, [
+    { y: y(normalFin), texto: `normal ${fmt(normalFin, 0)}`, color: "var(--muted)" },
+    a.nino_dia_hm3 ? { y: y(ninoFin), texto: `Niño ${fmt(ninoFin, 0)}`, color: "var(--nino)" } : null,
+  ], W - M.right + 4, 11);
+  [1, Math.round(diasMes / 2), diasMes].forEach((dd, k) => {
+    const t = svgEl("text", { x: x(dd), y: H - 6, "text-anchor": k === 0 ? "start" : k === 2 ? "end" : "middle", "font-size": "10", class: "mono" });
+    t.textContent = `${dd}-${MESES_CORTO[a.mes - 1]}`; t.setAttribute("fill", "var(--faint)"); svg.appendChild(t);
   });
-
-  const topLine = datos.map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.valor)}`).join(" ");
-  const areaD = `${topLine} L${x(datos.length - 1)},${y(yMin)} L${x(0)},${y(yMin)} Z`;
-  svg.appendChild(svgEl("path", { d: areaD, fill: "var(--accent)", opacity: 0.14 }));
-  svg.appendChild(svgEl("path", { d: topLine, fill: "none", stroke: "var(--accent)", "stroke-width": 1.8 }));
-
-  const ultimo = datos[datos.length - 1];
-  svg.appendChild(svgEl("circle", {
-    cx: x(datos.length - 1), cy: y(ultimo.valor), r: 4.5,
-    fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2,
-  }));
-
-  [...new Set([0, Math.floor((datos.length - 1) / 2), datos.length - 1])].forEach(i => {
-    const anchor = i === 0 ? "start" : i === datos.length - 1 ? "end" : "middle";
-    const t = svgEl("text", { x: x(i), y: H - 4, "text-anchor": anchor, "font-size": "9.5", class: "mono" });
-    t.textContent = datos[i].fecha.slice(5); t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
+  const normalHoy = a.normal_dia_hm3 * ult[0];
+  hoverMini(c, diasMes + 1, x, i => {
+    const p = a.serie.find(q => q[0] === i);
+    return `<b>${i} de ${MESES_LARGO[a.mes - 1]}</b>` + (p ? fila("Acumulado real", `${fmt(p[1], 0)} hm³`) : fila("Acumulado real", "—"))
+      + fila("Normal a esa fecha", `${fmt(a.normal_dia_hm3 * i, 0)} hm³`) + (a.nino_dia_hm3 ? fila("Años El Niño", `${fmt(a.nino_dia_hm3 * i, 0)} hm³`) : "");
   });
+  return `${fmt(ult[1], 0)} <small>hm³ · ${fmt(ult[1] / normalHoy * 100, 0)}% de lo normal</small>`;
+}
 
-  const dot = svgEl("circle", { r: 4, fill: "var(--accent)", opacity: 0, stroke: "var(--panel)", "stroke-width": 1.5 });
-  svg.appendChild(dot);
-  const overlay = svgEl("rect", { x: M.left, y: 0, width: Math.max(1, W - M.left - M.right), height: H, fill: "transparent" });
-  svg.appendChild(overlay);
-  overlay.addEventListener("mousemove", evt => {
-    const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
-    const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
-    let idx = Math.round((loc.x - M.left) / (W - M.left - M.right) * (datos.length - 1));
-    idx = Math.max(0, Math.min(datos.length - 1, idx));
-    const d = datos[idx];
-    dot.setAttribute("cx", x(idx)); dot.setAttribute("cy", y(d.valor)); dot.setAttribute("opacity", 1);
-    const pctNota = meta.key === "volumen_util_hm3" && d.pct != null ? ` (${fmt(d.pct, 1)}% útil)` : "";
-    let filas = `<div class="tt-row"><span>${meta.label}</span><b>${fmt(d.valor, meta.dec)} ${meta.unit}${pctNota}</b></div>`;
-    if (prom.todos != null) filas += `<div class="tt-row"><span>Prom. histórico de ${MESES_LARGO[prom_mes - 1]}</span><b>${fmt(prom.todos, meta.dec)} ${meta.unit}</b></div>`;
-    if (prom.nino != null) filas += `<div class="tt-row"><span>Prom. en El Niño</span><b>${fmt(prom.nino, meta.dec)} ${meta.unit}</b></div>`;
-    if (prom.nina != null) filas += `<div class="tt-row"><span>Prom. en La Niña</span><b>${fmt(prom.nina, meta.dec)} ${meta.unit}</b></div>`;
-    const encabezado = d.esHoy ? `${d.fecha} · hoy` : d.fecha;
-    showTip(`<b>${encabezado}</b>${filas}`, evt);
-  });
-  overlay.addEventListener("mouseleave", () => { dot.setAttribute("opacity", 0); hideTip(); });
-
-  const pctSufijo = meta.key === "volumen_util_hm3" && ultimo.pct != null ? ` (${fmt(ultimo.pct, 1)}% útil)` : "";
-  document.getElementById(`rf-val-${meta.key}`).textContent = fmt(ultimo.valor, meta.dec) + " " + meta.unit + pctSufijo;
+function renderMiniCharts() {
+  const datos = serieV2(rfVentana);
+  document.getElementById("rf-titulo-ventana").textContent = `últimos ${rfVentana} días`;
+  const valores = {
+    aportes: miniAportes(datos), descarga: miniDescarga(datos), balance: miniBalance(datos),
+    nivel: miniNivelVu("nivel"), volumen_util_hm3: miniNivelVu("volumen_util_hm3"), acumulado: miniAcumulado(),
+  };
+  Object.entries(valores).forEach(([k, v]) => { document.getElementById(`rf-val-${k}`).innerHTML = v; });
 }
 
 /* ---------------------------------------------------------------- historial de alertas (30 dias fijos, cota + volumen) */
@@ -1266,12 +1603,17 @@ function renderHistorialAlertas() {
         fill: COLOR_SEGUIMIENTO[estado], opacity: 0.9,
       });
       svg.appendChild(rect);
+      if (cellW >= 14) {
+        const letra = svgEl("text", { x: cx + cellW / 2, y: fila.y + rowH / 2 + 4, "text-anchor": "middle", "font-size": "11", "font-weight": "800", class: "mono", "pointer-events": "none" });
+        letra.textContent = LETRA_SEGUIMIENTO[estado]; letra.setAttribute("fill", textoSobre(ZONA_VAR[estado]));
+        svg.appendChild(letra);
+      }
       rect.addEventListener("mouseenter", evt => {
         rect.setAttribute("opacity", 1);
         rect.setAttribute("stroke", "var(--ink)");
         rect.setAttribute("stroke-width", 1.6);
         const encabezado = d.esHoy ? `${d.fecha} · hoy` : d.fecha;
-        showTip(`<b>${encabezado}</b><div class="tt-row"><span>${fila.etiqueta}</span><b>${LABEL_SEGUIMIENTO[estado]}</b></div><div class="tt-row"><span>Valor</span><b>${fila.valor(d)}</b></div>`, evt);
+        showTip(`<b>${encabezado}</b><div class="tt-row"><span>${fila.etiqueta}</span><b style="color:${INK_SEGUIMIENTO[estado]}">${LABEL_SEGUIMIENTO[estado]}</b></div><div class="tt-row"><span>Valor</span><b>${fila.valor(d)}</b></div>`, evt);
       });
       rect.addEventListener("mousemove", evt => moveTip(evt));
       rect.addEventListener("mouseleave", () => {
@@ -1294,8 +1636,8 @@ function renderHistorialAlertas() {
 }
 
 function initHistorialAlertas() {
-  document.getElementById("ah-legend").innerHTML = ["ROJO", "NARANJA", "AMARILLO", "VERDE"].map(k =>
-    `<span><i style="background:${COLOR_SEGUIMIENTO[k]}"></i>${LABEL_SEGUIMIENTO[k]}</span>`
+  document.getElementById("ah-legend").innerHTML = ["VERDE", "AMARILLO", "NARANJA", "ROJO"].map(k =>
+    `<span><i style="background:${COLOR_SEGUIMIENTO[k]}"></i>${LETRA_SEGUIMIENTO[k]} · ${LABEL_SEGUIMIENTO[k]}</span>`
   ).join("");
   renderHistorialAlertas();
 }
@@ -1303,253 +1645,212 @@ function initHistorialAlertas() {
 const prom_mes = DATA.promedios_mes_actual.mes;
 
 function initRecienteGrid() {
-  document.getElementById("rf-grid").innerHTML = RF_VARS.map(v => `
+  document.getElementById("rf-grid").innerHTML = RF_CARDS.map(v => `
     <div class="rf-card">
       <div class="rf-card-head">
         <div class="rf-card-label">${v.label}</div>
         <div class="rf-card-value" id="rf-val-${v.key}"></div>
       </div>
       <div class="rf-card-desc">${v.desc}</div>
-      <svg id="chart-rf-${v.key}" viewBox="0 0 460 210" preserveAspectRatio="xMidYMid meet"></svg>
+      <div><svg id="chart-rf-${v.key}"></svg></div>
     </div>
   `).join("");
 
   document.getElementById("rf-legend").innerHTML = `
-    <span><i style="border-top-color:var(--accent)"></i>Dato real (cierre diario)</span>
-    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${MESES_LARGO[prom_mes - 1]}</span>
-    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
-    <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
+    <span><i style="border-top-color:var(--accent)"></i>Promedio del día</span>
+    <span><i style="width:14px;height:10px;border:none;border-radius:2px;background:var(--neutral-phase);opacity:.45"></i>Rango normal del mes (P25–P75 / P10–P90)</span>
+    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Mediana del mes</span>
+    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Mediana en años El Niño</span>
+    <span><i class="dashed" style="border-top-color:var(--ink)"></i>Máx. de operación vigente</span>
+    <span><i style="width:14px;height:10px;border:none;border-radius:2px;background:linear-gradient(90deg,var(--normal),var(--atencion),var(--vigilancia),var(--prioritario))"></i>Bandas de alerta del mes (N · A · V · P)</span>
   `;
-
   document.getElementById("ultima-lectura").textContent =
     `Última lectura: ${formatearFechaHora(DATA.ultimo_dato_horario.fecha_hora)}`;
-
-  RF_VARS.forEach(renderMiniChart);
+  document.querySelectorAll("#rf-ventana-toggle button").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll("#rf-ventana-toggle button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    rfVentana = parseInt(btn.dataset.d, 10);
+    renderMiniCharts();
+  }));
+  renderMiniCharts();
 }
 
-/* ---------------------------------------------------------------- aportes en detalle (hora a hora) */
-function serieHorariaVentana(horas) {
-  return DATA.serie_horaria_aportes.slice(-horas);
-}
-
-function statsVentanaAportes(datos) {
-  const valores = datos.map(d => d.aportes);
-  const promedio = valores.reduce((a, b) => a + b, 0) / valores.length;
-  return {
-    actual: valores[valores.length - 1],
-    promedio, maximo: Math.max(...valores), minimo: Math.min(...valores),
-    tendencia: valores[valores.length - 1] - valores[0],
-  };
-}
-
+/* ---------------------------------------------------------------- aportes en detalle (hora a hora) -- v2 */
 let ventanaAportesHoras = 24;
+const promedio = arr => { const v = arr.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+
+function leyendaHoraria(nombreMes, hayVertido) {
+  document.getElementById("cd-legend").innerHTML = `
+    <span><i style="border-top-color:var(--accent)"></i>Caudal afluente real</span>
+    <span><i style="border-top-color:var(--gen)"></i>Turbinado (generación)</span>
+    ${hayVertido ? `<span><i class="dashed" style="border-top-color:var(--vertido)"></i>Descarga total (con vertimiento)</span>` : ""}
+    <span><i style="width:14px;height:10px;border:none;border-radius:2px;background:var(--neutral-phase);opacity:.45"></i>Rango normal de ${nombreMes} (P25–P75 / P10–P90)</span>
+    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Mediana de ${nombreMes}</span>
+    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Mediana en años El Niño</span>
+  `;
+}
 
 function renderAportesDetalle(horas) {
   const nombreMes = MESES_LARGO[prom_mes - 1];
   document.getElementById("cd-titulo").textContent = horas <= 24 ? "— últimas 24 horas" : "— últimos 5 días";
   document.getElementById("cd-section-note").innerHTML =
-    `Caudal afluente real, lectura por lectura, contra lo normal históricamente <b>este mes</b> y en años El Niño / La Niña / Neutral.`;
+    `Lectura por lectura, contra el <b>rango normal de ${nombreMes}</b> en los años anteriores y la mediana de los años El Niño.`;
   document.getElementById("cd-nota").textContent = "";
-  // El %/valor/insignia/tendencia de arriba siempre son los del MES en curso
-  // (el mismo calculo que en modo "Por mes"), no un dato horario puntual --
-  // asi la tarjeta nunca muestra dos definiciones distintas de "%".
   renderCdHero(prom_mes);
-  document.getElementById("cd-legend").innerHTML = `
-    <span><i style="border-top-color:var(--accent)"></i>Caudal afluente real</span>
-    <span><i style="border-top-color:var(--gen)"></i>Turbinado real (generación)</span>
-    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${nombreMes}</span>
-    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
-    <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
-    <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--critical);opacity:0.55;"></i>Déficit: por debajo del promedio en El Niño</span>
-  `;
+
+  const datos = V2.serie_horaria.slice(-horas);
+  if (datos.length < 2) return;
+  const hayVertido = datos.some(d => d.aguas_abajo != null && d.turbinado != null && d.aguas_abajo - d.turbinado > 1);
+  leyendaHoraria(nombreMes, hayVertido);
 
   const svg = document.getElementById("chart-aportes-detalle");
-  svg.innerHTML = "";
-  const datos = serieHorariaVentana(horas);
-  if (datos.length < 2) return;
-
-  const prom = DATA.promedios_mes_actual.aportes || {};
-  const refs = [
-    prom.todos != null ? { valor: prom.todos, color: "var(--neutral-phase)" } : null,
-    prom.nino != null ? { valor: prom.nino, color: "var(--nino)" } : null,
-    prom.nina != null ? { valor: prom.nina, color: "var(--nina)" } : null,
-  ].filter(Boolean);
-
-  const W = 1160, H = 380, M = { top: 20, right: 52, bottom: 34, left: 58 };
+  const W = anchoDe(svg, 320, 1160), angosto = W < 640;
+  const H = angosto ? 290 : 360, M = { top: 26, right: angosto ? 50 : 72, bottom: 34, left: angosto ? 40 : 52 };
+  prepararSvg(svg, W, H);
+  const r = datos.map(d => rango(parseInt(d.fecha_hora.slice(5, 7), 10), "aportes"));
+  const ap = datos.map(d => d.aportes), tu = datos.map(d => d.turbinado), ab = datos.map(d => d.aguas_abajo);
+  const esc = niceScale(0, Math.max(...ap, ...tu.filter(v => v != null), ...ab.filter(v => v != null), ...r.map(q => q.p90)), angosto ? 5 : 6);
   const x = scaleLinear([0, datos.length - 1], [M.left, W - M.right]);
-  const valores = datos.map(d => d.aportes);
-  const valoresTurb = datos.map(d => d.turbinado).filter(v => v != null);
-  const vals = valores.concat(valoresTurb).concat(refs.map(r => r.valor));
-  const yMin = Math.min(0, Math.min(...vals) * 0.94), yMax = Math.max(...vals) * 1.1;
-  const y = scaleLinear([yMin, yMax], [H - M.bottom, M.top]);
+  const y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  const xs = datos.map((_, i) => x(i));
 
-  // Bandas de color entre cada par de lineas de referencia consecutivas (no
-  // solo la linea puntual, sino la zona que representan -- "que tan El Nino
-  // o La Nina" es todo ese rango). Se pintan como degradado entre el color
-  // de cada linea, ordenadas por valor, para que el numero de bandas y sus
-  // limites se ajusten solos si algun mes falta una fase de referencia.
-  if (refs.length >= 1) {
-    const defs = svgEl("defs", {});
-    svg.appendChild(defs);
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, r.map(q => y(q.p10)), r.map(q => y(q.p90))), fill: "var(--neutral-phase)", opacity: 0.11 }));
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, r.map(q => y(q.p25)), r.map(q => y(q.p75))), fill: "var(--neutral-phase)", opacity: 0.2 }));
+  ejeY(svg, esc, y, M.left, W - M.right, angosto ? 10 : 11);
 
-    // Deficit: por debajo del promedio en años El Nino -- estar mas seco
-    // que lo tipico en El Nino ya es peor que "normal en El Nino", se
-    // marca en rojizo como zona de alerta (no un simple degradado de
-    // comparacion como las demas bandas).
-    const ninoRef = refs.find(r => r.color === "var(--nino)");
-    if (ninoRef) {
-      svg.appendChild(svgEl("rect", {
-        x: M.left, y: y(ninoRef.valor), width: W - M.left - M.right,
-        height: Math.max(0, y(yMin) - y(ninoRef.valor)), fill: cssVar("--critical"), opacity: 0.16,
-      }));
-    }
-
-    const ordenados = [...refs].sort((a, b) => a.valor - b.valor);
-    for (let i = 0; i < ordenados.length - 1; i++) {
-      const abajo = ordenados[i], arriba = ordenados[i + 1];
-      const gradId = `banda-grad-${i}`;
-      const grad = svgEl("linearGradient", { id: gradId, x1: "0", y1: "1", x2: "0", y2: "0" });
-      grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": cssVar(abajo.color.slice(4, -1)), "stop-opacity": "0.32" }));
-      grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": cssVar(arriba.color.slice(4, -1)), "stop-opacity": "0.32" }));
-      defs.appendChild(grad);
-      svg.appendChild(svgEl("rect", {
-        x: M.left, y: y(arriba.valor), width: W - M.left - M.right,
-        height: Math.max(0, y(abajo.valor) - y(arriba.valor)), fill: `url(#${gradId})`,
-      }));
-    }
-  }
-
-  // Sombreado que destaca las ultimas 24h dentro de la ventana de 5 dias --
-  // el pedido explicito era poder ver "todo sobre los aportes, hora a hora,
-  // en especial las ultimas 24 horas" sin perder la ventana de 5 dias.
-  if (horas > 24) {
-    const idx24 = datos.length - 24;
-    svg.appendChild(svgEl("rect", {
-      x: x(idx24), y: M.top, width: x(datos.length - 1) - x(idx24), height: H - M.top - M.bottom,
-      fill: "var(--accent)", opacity: 0.07,
-    }));
-    const lbl = svgEl("text", { x: x(idx24) + 5, y: M.top + 13, "font-size": "10", class: "mono", "font-weight": "700" });
-    lbl.textContent = "últimas 24h"; lbl.setAttribute("fill", "var(--accent)");
-    svg.appendChild(lbl);
-  }
-
-  [yMin, (yMin + yMax) / 2, yMax].forEach(v => {
-    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
-    const t = svgEl("text", { x: M.left - 8, y: y(v) + 3.5, "text-anchor": "end", "font-size": "11", class: "mono" });
-    t.textContent = fmt(v, 0); t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
-  });
-
-  refs.forEach(r => {
-    svg.appendChild(svgEl("line", {
-      x1: M.left, x2: W - M.right, y1: y(r.valor), y2: y(r.valor),
-      stroke: r.color, "stroke-width": 1.4, "stroke-dasharray": "5 3", opacity: 0.85,
-    }));
-  });
-  const etiquetas = refs.map(r => ({ ...r, ly: y(r.valor) })).sort((a, b) => a.ly - b.ly);
-  for (let i = 1; i < etiquetas.length; i++) {
-    if (etiquetas[i].ly - etiquetas[i - 1].ly < 12) etiquetas[i].ly = etiquetas[i - 1].ly + 12;
-  }
-  etiquetas.forEach(r => {
-    const t = svgEl("text", { x: W - M.right + 4, y: r.ly + 3.5, "font-size": "10.5", class: "mono", fill: r.color });
-    t.textContent = fmt(r.valor, 1);
-    svg.appendChild(t);
-  });
-
-  const topLine = datos.map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.aportes)}`).join(" ");
-  const areaD = `${topLine} L${x(datos.length - 1)},${y(yMin)} L${x(0)},${y(yMin)} Z`;
-  svg.appendChild(svgEl("path", { d: areaD, fill: "var(--accent)", opacity: 0.14 }));
-  svg.appendChild(svgEl("path", { d: topLine, fill: "none", stroke: "var(--accent)", "stroke-width": 2 }));
-
-  const ultimo = datos[datos.length - 1];
-  svg.appendChild(svgEl("circle", {
-    cx: x(datos.length - 1), cy: y(ultimo.aportes), r: 4.5,
-    fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2,
-  }));
-
-  // Turbinado, de referencia junto a los aportes -- linea solida (sin
-  // relleno, para no competir visualmente con el area de aportes) que se
-  // corta en cualquier hueco de dato en vez de interpolar.
-  const segmentosTurb = [];
-  let segActual = [];
+  // eje X: cada 3 h (24 h) o cada 12 h (5 dias); el cambio de dia con linea y fecha
+  const paso = horas <= 24 ? (angosto ? 6 : 3) : (angosto ? 24 : 12);
   datos.forEach((d, i) => {
-    if (d.turbinado != null) {
-      segActual.push(`${segActual.length === 0 ? "M" : "L"}${x(i)},${y(d.turbinado)}`);
-    } else if (segActual.length) {
-      segmentosTurb.push(segActual.join(" ")); segActual = [];
+    const h = parseInt(d.fecha_hora.slice(11, 13), 10);
+    if (h === 0) {
+      svg.appendChild(svgEl("line", { x1: xs[i], x2: xs[i], y1: M.top - 8, y2: H - M.bottom, stroke: "var(--line-strong)", "stroke-width": 1, "stroke-dasharray": "2 3" }));
+      const t = svgEl("text", { x: xs[i] + 4, y: M.top - 12, "font-size": "10.5", "font-weight": "700", class: "mono" });
+      t.textContent = etiquetaDia(d.fecha_hora); t.setAttribute("fill", "var(--muted)");
+      svg.appendChild(t);
+    }
+    if (h % paso === 0 || i === datos.length - 1) {
+      const t = svgEl("text", { x: xs[i], y: H - M.bottom + 16, "text-anchor": i === datos.length - 1 ? "end" : "middle", "font-size": "10.5", class: "mono" });
+      t.textContent = `${String(h).padStart(2, "0")}h`; t.setAttribute("fill", i === datos.length - 1 ? "var(--ink)" : "var(--faint)");
+      svg.appendChild(t);
     }
   });
-  if (segActual.length) segmentosTurb.push(segActual.join(" "));
-  segmentosTurb.forEach(seg => {
-    svg.appendChild(svgEl("path", { d: seg, fill: "none", stroke: "var(--gen)", "stroke-width": 1.8, opacity: 0.95 }));
-  });
-  for (let i = datos.length - 1; i >= 0; i--) {
-    if (datos[i].turbinado != null) {
-      svg.appendChild(svgEl("circle", {
-        cx: x(i), cy: y(datos[i].turbinado), r: 3.5, fill: "var(--gen)", stroke: "var(--panel)", "stroke-width": 1.5,
-      }));
-      break;
-    }
+  if (horas > 24) {
+    const i24 = datos.length - 24;
+    svg.appendChild(svgEl("rect", { x: xs[i24], y: M.top, width: xs[xs.length - 1] - xs[i24], height: H - M.top - M.bottom, fill: "var(--accent)", opacity: 0.06 }));
   }
 
-  const nTicks = horas <= 24 ? 6 : 6;
-  const paso = Math.max(1, Math.floor((datos.length - 1) / (nTicks - 1)));
-  const idxTicks = [...new Set([0, ...Array.from({ length: nTicks - 2 }, (_, i) => (i + 1) * paso), datos.length - 1])];
-  idxTicks.forEach(i => {
-    const fecha = new Date(datos[i].fecha_hora.replace(" ", "T"));
-    const label = horas <= 24
-      ? fecha.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", hour12: false })
-      : fecha.toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit" }) + " " +
-        fecha.toLocaleTimeString("es-CO", { hour: "2-digit", hour12: false }) + "h";
-    const anchor = i === 0 ? "start" : i === datos.length - 1 ? "end" : "middle";
-    const t = svgEl("text", { x: x(i), y: H - 8, "text-anchor": anchor, "font-size": "10.5", class: "mono" });
-    t.textContent = label; t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, r.map(q => y(q.p50))), fill: "none", stroke: "var(--neutral-phase)", "stroke-width": 1.4, "stroke-dasharray": "5 3" }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, r.map(q => q.nino_p50 == null ? null : y(q.nino_p50))), fill: "none", stroke: "var(--nino)", "stroke-width": 1.4, "stroke-dasharray": "5 3" }));
+  svg.appendChild(svgEl("path", { d: pathBanda(xs, xs.map(() => y(0)), ap.map(y)), fill: "var(--accent)", opacity: 0.12 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, ap.map(y)), fill: "none", stroke: "var(--accent)", "stroke-width": 2.4 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(xs, tu.map(v => v == null ? null : y(v))), fill: "none", stroke: "var(--gen)", "stroke-width": 1.8 }));
+  if (hayVertido) svg.appendChild(svgEl("path", { d: pathLinea(xs, ab.map(v => v == null ? null : y(v))), fill: "none", stroke: "var(--vertido)", "stroke-width": 1.5, "stroke-dasharray": "4 3" }));
+  const n = datos.length - 1;
+  svg.appendChild(svgEl("circle", { cx: xs[n], cy: y(ap[n]), r: 5, fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2 }));
+  if (tu[n] != null) svg.appendChild(svgEl("circle", { cx: xs[n], cy: y(tu[n]), r: 4, fill: "var(--gen)", stroke: "var(--panel)", "stroke-width": 2 }));
+  const rn = r[n];
+  etiquetasDerecha(svg, [
+    { y: y(ap[n]), texto: fmt(ap[n], 0), color: "var(--accent)", bold: true },
+    tu[n] != null ? { y: y(tu[n]), texto: fmt(tu[n], 0), color: "var(--gen)", bold: true } : null,
+    { y: y(rn.p50), texto: `med ${fmt(rn.p50, 0)}`, color: "var(--muted)" },
+    rn.nino_p50 != null ? { y: y(rn.nino_p50), texto: `Niño ${fmt(rn.nino_p50, 0)}`, color: "var(--nino)" } : null,
+  ], W - M.right + 6, 12);
+
+  // ---- balance hora a hora (mismo eje X que la grafica de arriba)
+  const svgB = document.getElementById("chart-balance-horario");
+  const HB = angosto ? 116 : 136;
+  prepararSvg(svgB, W, HB);
+  const MB = { top: 8, bottom: 8 };
+  const bal = datos.map(d => d.aguas_abajo == null ? null : d.aportes - d.aguas_abajo);
+  const lim = Math.max(10, ...bal.filter(v => v != null).map(Math.abs));
+  const escB = niceScale(-lim, lim, 5);
+  const yb = scaleLinear([escB.min, escB.max], [HB - MB.bottom, MB.top]);
+  ejeY(svgB, escB, yb, M.left, W - M.right, 10);
+  svgB.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: yb(0), y2: yb(0), stroke: "var(--line-strong)", "stroke-width": 1.2 }));
+  const bw = Math.max(1.5, (W - M.left - M.right) / datos.length * 0.72);
+  bal.forEach((b, i) => {
+    if (b == null) return;
+    svgB.appendChild(svgEl("rect", { x: xs[i] - bw / 2, y: Math.min(yb(b), yb(0)), width: bw, height: Math.max(1, Math.abs(yb(b) - yb(0))),
+      fill: b >= 0 ? "var(--bal-up)" : "var(--bal-down)", rx: Math.min(2, bw / 3) }));
+  });
+  [["sube", MB.top + 10, "var(--bal-up)"], ["baja", HB - MB.bottom - 4, "var(--bal-down)"]].forEach(([txt, ty, col]) => {
+    const t = svgEl("text", { x: W - M.right + 6, y: ty, "font-size": "10.5", "font-weight": "700" });
+    t.textContent = txt === "sube" ? "▲ sube" : "▼ baja"; t.setAttribute("fill", col); svgB.appendChild(t);
+  });
+  const balProm = promedio(bal);
+  document.getElementById("bal-resumen").innerHTML = balProm == null ? "" :
+    `Promedio de la ventana: <b style="color:${balProm >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(balProm, 1)} m³/s</b> ≈ ${signo(balProm * M3S_A_HM3_DIA, 1)} hm³/día`;
+
+  // ---- interaccion compartida por las dos graficas
+  const vl = svgEl("line", { y1: M.top, y2: H - M.bottom, stroke: "var(--muted)", opacity: 0 });
+  const vlB = svgEl("line", { y1: MB.top, y2: HB - MB.bottom, stroke: "var(--muted)", opacity: 0 });
+  const dA = svgEl("circle", { r: 4.5, fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 1.5, opacity: 0 });
+  const dT = svgEl("circle", { r: 4, fill: "var(--gen)", stroke: "var(--panel)", "stroke-width": 1.5, opacity: 0 });
+  svg.appendChild(vl); svg.appendChild(dA); svg.appendChild(dT); svgB.appendChild(vlB);
+  function mover(evt, s) {
+    const pt = s.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+    const loc = pt.matrixTransform(s.getScreenCTM().inverse());
+    const i = Math.max(0, Math.min(n, Math.round((loc.x - M.left) / (W - M.left - M.right) * n)));
+    const d = datos[i];
+    [vl, vlB].forEach(l => { l.setAttribute("x1", xs[i]); l.setAttribute("x2", xs[i]); l.setAttribute("opacity", 0.55); });
+    dA.setAttribute("cx", xs[i]); dA.setAttribute("cy", y(d.aportes)); dA.setAttribute("opacity", 1);
+    if (d.turbinado != null) { dT.setAttribute("cx", xs[i]); dT.setAttribute("cy", y(d.turbinado)); dT.setAttribute("opacity", 1); } else dT.setAttribute("opacity", 0);
+    let html = `<b>${etiquetaDia(d.fecha_hora)} · ${d.fecha_hora.slice(11, 16)}h</b>` + fila("Caudal afluente", `${fmt(d.aportes, 1)} m³/s`);
+    if (d.turbinado != null) html += fila("Turbinado", `${fmt(d.turbinado, 1)} m³/s`);
+    if (d.aguas_abajo != null) html += fila("Descarga total", `${fmt(d.aguas_abajo, 1)} m³/s`);
+    if (bal[i] != null) html += fila("Balance", `<span style="color:${bal[i] >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(bal[i], 1)} m³/s</span>`);
+    html += fila("Normal (P25–P75)", `${fmt(r[i].p25, 0)}–${fmt(r[i].p75, 0)}`);
+    showTip(html, evt);
+  }
+  [[svg, H], [svgB, HB]].forEach(([s, hh]) => {
+    const ov = svgEl("rect", { x: M.left - 6, y: 0, width: W - M.left - M.right + 12, height: hh, fill: "transparent" });
+    s.appendChild(ov);
+    ov.addEventListener("mousemove", evt => mover(evt, s));
+    ov.addEventListener("mouseleave", () => { [vl, vlB, dA, dT].forEach(e => e.setAttribute("opacity", 0)); hideTip(); });
   });
 
-  const dot = svgEl("circle", { r: 4.5, fill: "var(--accent)", opacity: 0, stroke: "var(--panel)", "stroke-width": 1.5 });
-  svg.appendChild(dot);
-  const vline = svgEl("line", { y1: M.top, y2: H - M.bottom, stroke: "var(--line-strong)", "stroke-width": 1, opacity: 0 });
-  svg.appendChild(vline);
-  const overlay = svgEl("rect", { x: M.left, y: 0, width: Math.max(1, W - M.left - M.right), height: H, fill: "transparent" });
-  svg.appendChild(overlay);
-  const dotTurb = svgEl("circle", { r: 4, fill: "var(--gen)", opacity: 0, stroke: "var(--panel)", "stroke-width": 1.5 });
-  svg.appendChild(dotTurb);
-  overlay.addEventListener("mousemove", evt => {
-    const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
-    const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
-    let idx = Math.round((loc.x - M.left) / (W - M.left - M.right) * (datos.length - 1));
-    idx = Math.max(0, Math.min(datos.length - 1, idx));
-    const d = datos[idx];
-    dot.setAttribute("cx", x(idx)); dot.setAttribute("cy", y(d.aportes)); dot.setAttribute("opacity", 1);
-    vline.setAttribute("x1", x(idx)); vline.setAttribute("x2", x(idx)); vline.setAttribute("opacity", 0.5);
-    if (d.turbinado != null) {
-      dotTurb.setAttribute("cx", x(idx)); dotTurb.setAttribute("cy", y(d.turbinado)); dotTurb.setAttribute("opacity", 1);
-    } else {
-      dotTurb.setAttribute("opacity", 0);
-    }
-    const fecha = new Date(d.fecha_hora.replace(" ", "T"));
-    const fechaLbl = fecha.toLocaleString("es-CO", {
-      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
-    });
-    let filas = `<div class="tt-row"><span>Caudal afluente</span><b>${fmt(d.aportes, 2)} m³/s</b></div>`;
-    if (d.turbinado != null) filas += `<div class="tt-row"><span>Turbinado</span><b>${fmt(d.turbinado, 2)} m³/s</b></div>`;
-    if (prom.todos != null) filas += `<div class="tt-row"><span>Prom. histórico de ${MESES_LARGO[prom_mes - 1]}</span><b>${fmt(prom.todos, 2)} m³/s</b></div>`;
-    if (prom.nino != null) filas += `<div class="tt-row"><span>Prom. en El Niño</span><b>${fmt(prom.nino, 2)} m³/s</b></div>`;
-    if (prom.nina != null) filas += `<div class="tt-row"><span>Prom. en La Niña</span><b>${fmt(prom.nina, 2)} m³/s</b></div>`;
-    showTip(`<b>${fechaLbl}</b>${filas}`, evt);
-  });
-  overlay.addEventListener("mouseleave", () => { dot.setAttribute("opacity", 0); dotTurb.setAttribute("opacity", 0); vline.setAttribute("opacity", 0); hideTip(); });
+  // ---- cifras de la ventana (sin la "tendencia en la ventana" de v1, que
+  // contradecia a la tendencia de 7 dias de arriba)
+  const u = DATA.ultimo_dato_horario, rm = rango(prom_mes, "aportes");
+  const hoyIso = u.fecha_hora.slice(0, 10);
+  const p7 = promedio(V2.diario_reciente.filter(d => d.fecha !== hoyIso).slice(-7).map(d => d.aportes));
+  const balAhora = u.aportes - u.aguas_abajo;
+  const kpi = (k, v, title = "") => `<div class="kpi" title="${title}"><span class="stat-chip-label">${k}</span><span class="stat-chip neutral">${v}</span></div>`;
+  document.getElementById("cd-stats").innerHTML =
+    kpi(`Ahora · ${u.fecha_hora.slice(11, 16)}h`, `${fmt(u.aportes, 1)} m³/s · ${fmt(u.aportes / rm.media * 100, 0)}%`, `Última lectura horaria, como % del promedio histórico de ${nombreMes}`)
+    + (p7 != null ? kpi("Promedio últimos 7 días", `${fmt(p7, 1)} m³/s · ${fmt(p7 / rm.media * 100, 0)}%`, "7 días ya cerrados (sin el día de hoy)") : "")
+    + kpi(`Ventana ${horas <= 24 ? "24 h" : "5 días"} · prom (mín–máx)`, `${fmt(promedio(ap), 0)} (${fmt(Math.min(...ap), 0)}–${fmt(Math.max(...ap), 0)})`)
+    + kpi("Balance ahora", `<span style="color:${balAhora >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(balAhora, 1)} m³/s</span>`, "Caudal que entra menos caudal que sale, en la última lectura");
+}
 
-  const s = statsVentanaAportes(datos);
-  const up = s.tendencia >= 0;
-
-  document.getElementById("cd-stats").innerHTML = `
-    <div class="ad-stat"><span class="stat-chip-label">Promedio ventana</span><span class="stat-chip neutral">${fmt(s.promedio, 1)} m³/s</span></div>
-    <div class="ad-stat"><span class="stat-chip-label">Máximo</span><span class="stat-chip neutral">${fmt(s.maximo, 1)} m³/s</span></div>
-    <div class="ad-stat"><span class="stat-chip-label">Mínimo</span><span class="stat-chip neutral">${fmt(s.minimo, 1)} m³/s</span></div>
-    <div class="ad-stat"><span class="stat-chip-label">Tendencia en la ventana</span><span class="stat-chip ${up ? "rate-up" : "rate-down"}">${up ? "▲" : "▼"} ${fmt(Math.abs(s.tendencia), 1)} m³/s</span></div>
-  `;
+// Recuadro de acumulados: lo que ha entrado este mes y desde que empezo el
+// episodio El Nino, contra lo normal. El deficit acumulado es la cifra que
+// mejor resume el efecto de El Nino sobre el embalse.
+function renderAcumulados() {
+  const el = document.getElementById("cd-acum");
+  const a = V2.acumulado_mes, ult = a.serie[a.serie.length - 1];
+  if (!ult) { el.hidden = true; return; }
+  const normal = a.normal_dia_hm3 * ult[0], pct = ult[1] / normal * 100;
+  const barra = (p, col) => `<div class="acum-bar"><i style="width:${Math.min(100, p)}%;background:${col}"></i></div>`;
+  let html = `
+    <div class="cd-acum-item">
+      <div class="k">${MESES_LARGO[a.mes - 1]} hasta hoy (${ult[0]} días)</div>
+      <div class="v">${fmt(ult[1], 0)} hm³ <span style="font-size:13px;color:var(--muted);font-weight:700">· ${fmt(pct, 0)}%</span></div>
+      <div class="s">de ${fmt(normal, 0)} hm³ normales a esta fecha — ${pct < 100 ? "faltan" : "sobran"} ${fmt(Math.abs(normal - ult[1]), 0)} hm³</div>
+      ${barra(pct, "var(--accent)")}
+    </div>`;
+  const e = V2.episodio_actual;
+  if (e) {
+    const pe = e.aportes_real_hm3 / e.aportes_normal_hm3 * 100, def = e.aportes_normal_hm3 - e.aportes_real_hm3;
+    html += `
+    <div class="cd-acum-item">
+      <div class="k">Desde que empezó El Niño (${fechaLarga(e.inicio)})</div>
+      <div class="v" style="color:var(--nino)">${fmt(pe, 0)}% de lo normal</div>
+      <div class="s">${fmt(e.aportes_real_hm3, 0)} hm³ en ${e.dias} días: ${def > 0 ? `<b>${fmt(def, 0)} hm³ menos</b>` : `${fmt(-def, 0)} hm³ más`} que el promedio ≈ ${fmt(Math.abs(def) / DATA.volumen_util_max_hm3, 1)} veces el volumen útil máximo</div>
+      ${barra(pe, "var(--nino)")}
+    </div>`;
+  }
+  el.innerHTML = html;
 }
 
 /* ---------------------------------------------------------------- hero de caudal afluente del mes en curso */
@@ -1589,7 +1890,11 @@ function serieMes(mesSel) {
 // 12 meses para que cada mes del selector se compare contra SU PROPIA norma.
 function promHistMes(mesSel) {
   const fila = (DATA.promedios_por_mes || []).find(p => p.mes === mesSel);
-  return fila ? (fila.aportes || {}) : {};
+  const base = fila ? (fila.aportes || {}) : {};
+  // v2: "normal" = promedio de los años ANTERIORES (la etiqueta dice
+  // 2001–2025; en v1 el promedio incluia el propio año en curso).
+  const r = rango(mesSel, "aportes");
+  return r ? { ...base, todos: r.media, nino: r.nino_media ?? base.nino, rango: r } : base;
 }
 
 // Tendencia del caudal afluente en los ultimos dias: ajuste lineal por minimos
@@ -1730,6 +2035,7 @@ function renderCdHero(mes) {
   } else {
     badge.innerHTML = "";
   }
+  renderAcumulados();
   return { datos, prom, tr, nombreMes, esMesActual };
 }
 
@@ -1737,159 +2043,91 @@ function renderCaudalMesActual(mesSel) {
   const mes = mesSel || caudalMesSeleccionado;
   const { anio, mes: mesActual } = mesAnioActual();
   const nombreMesCap0 = MESES_LARGO[mes - 1];
-  const nombreMesCap = nombreMesCap0.charAt(0).toUpperCase() + nombreMesCap0.slice(1);
-  document.getElementById("cd-titulo").textContent = `— ${nombreMesCap} ${anio}`;
+  document.getElementById("cd-titulo").textContent = `— ${nombreMesCap0.charAt(0).toUpperCase() + nombreMesCap0.slice(1)} ${anio}`;
 
   const hero = renderCdHero(mes);
   if (!hero) return;
   const { datos, prom, tr, nombreMes, esMesActual } = hero;
-  const valores = datos.map(d => d.aportes); // para el eje Y de la grafica de barras
+  const rq = prom.rango;
 
   document.getElementById("cd-section-note").textContent = esMesActual
-    ? ""
-    : `Mes completo de ${anio} — vuelve a "${MESES_LARGO[mesActual - 1]}" para ver el mes en curso.`;
+    ? "" : `Mes completo de ${anio} — vuelve a "${MESES_LARGO[mesActual - 1]}" para ver el mes en curso.`;
   document.getElementById("cd-nota").textContent = esMesActual
     ? `Promedio de todos los días de ${nombreMes} hasta hoy (incluye el día de hoy, con las horas reportadas).`
     : `Promedio de los ${datos.length} días de ${nombreMes} de ${anio}.`;
-
   document.getElementById("cd-legend").innerHTML = `
     <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--accent);"></i>Caudal afluente, promedio diario</span>
     ${tr ? `<span><i style="width:16px;height:0;border:none;border-top:2px solid var(--ink);"></i>Tendencia lineal (${tr.n} días)</span>` : ""}
-    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Promedio histórico de ${nombreMes}</span>
-    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Promedio en años El Niño</span>
-    <span><i class="dashed" style="border-top-color:var(--nina)"></i>Promedio en años La Niña</span>
-    <span><i style="width:12px;height:12px;border:none;border-radius:3px;background:var(--critical);opacity:0.55;"></i>Déficit: por debajo del promedio en El Niño</span>
-  `;
+    <span><i style="width:14px;height:10px;border:none;border-radius:2px;background:var(--neutral-phase);opacity:.45"></i>Rango normal de ${nombreMes} (P25–P75 / P10–P90)</span>
+    <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Mediana de ${nombreMes}</span>
+    <span><i class="dashed" style="border-top-color:var(--nino)"></i>Mediana en años El Niño</span>`;
 
   const svg = document.getElementById("chart-caudal-mes");
-  svg.innerHTML = "";
-  const refs = [
-    prom.todos != null ? { valor: prom.todos, color: "var(--neutral-phase)" } : null,
-    prom.nino != null ? { valor: prom.nino, color: "var(--nino)" } : null,
-    prom.nina != null ? { valor: prom.nina, color: "var(--nina)" } : null,
-  ].filter(Boolean);
-
-  const W = 1160, H = 440, M = { top: 20, right: 52, bottom: 36, left: 58 };
+  const W = anchoDe(svg, 320, 1160), angosto = W < 640;
+  const H = angosto ? 300 : 400, M = { top: 18, right: angosto ? 50 : 72, bottom: 32, left: angosto ? 40 : 52 };
+  prepararSvg(svg, W, H);
   const diasEnMes = new Date(anio, mes, 0).getDate();
   const x = scaleLinear([0.5, diasEnMes + 0.5], [M.left, W - M.right]);
   const yTrend = tr ? (d => tr.a + tr.b * d) : null;
   const diaProy = tr ? Math.min(diasEnMes, tr.xFin + 3) : null;
-  const vals = valores
-    .concat(refs.map(r => r.valor))
-    .concat(tr ? [yTrend(tr.xIni), yTrend(tr.xFin), Math.max(0, yTrend(diaProy))] : []);
-  const yMax = Math.max(...vals) * 1.12;
-  const y = scaleLinear([0, yMax], [H - M.bottom, M.top]);
-  const barW = Math.max(4, Math.min(30, (W - M.left - M.right) / diasEnMes * 0.62));
+  const vals = datos.map(d => d.aportes).concat(rq ? [rq.p90] : []).concat(tr ? [yTrend(tr.xIni), yTrend(tr.xFin)] : []);
+  const esc = niceScale(0, Math.max(...vals), angosto ? 5 : 6);
+  const y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  const barW = Math.max(3, Math.min(28, (W - M.left - M.right) / diasEnMes * 0.62));
 
-  // Banda de deficit por debajo del promedio en años El Nino, igual criterio
-  // visual que "Aportes en detalle" -- estar mas seco que lo tipico en un
-  // año El Nino ya es zona de alerta, no una simple banda de comparacion.
-  const ninoRef = refs.find(r => r.color === "var(--nino)");
-  if (ninoRef) {
-    svg.appendChild(svgEl("rect", {
-      x: M.left, y: y(ninoRef.valor), width: W - M.left - M.right,
-      height: Math.max(0, y(0) - y(ninoRef.valor)), fill: cssVar("--critical"), opacity: 0.1,
-    }));
+  if (rq) {
+    svg.appendChild(svgEl("rect", { x: M.left, y: y(rq.p90), width: W - M.left - M.right, height: y(rq.p10) - y(rq.p90), fill: "var(--neutral-phase)", opacity: 0.11 }));
+    svg.appendChild(svgEl("rect", { x: M.left, y: y(rq.p75), width: W - M.left - M.right, height: y(rq.p25) - y(rq.p75), fill: "var(--neutral-phase)", opacity: 0.2 }));
+  }
+  ejeY(svg, esc, y, M.left, W - M.right, angosto ? 10 : 11);
+  if (rq) {
+    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(rq.p50), y2: y(rq.p50), stroke: "var(--neutral-phase)", "stroke-width": 1.4, "stroke-dasharray": "5 3" }));
+    if (rq.nino_p50 != null) svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(rq.nino_p50), y2: y(rq.nino_p50), stroke: "var(--nino)", "stroke-width": 1.4, "stroke-dasharray": "5 3" }));
+    etiquetasDerecha(svg, [
+      { y: y(rq.p50), texto: `med ${fmt(rq.p50, 0)}`, color: "var(--muted)" },
+      rq.nino_p50 != null ? { y: y(rq.nino_p50), texto: `Niño ${fmt(rq.nino_p50, 0)}`, color: "var(--nino)" } : null,
+      { y: y(rq.p75), texto: `P75 ${fmt(rq.p75, 0)}`, color: "var(--faint)", size: 9.5 },
+      { y: y(rq.p25), texto: `P25 ${fmt(rq.p25, 0)}`, color: "var(--faint)", size: 9.5 },
+    ], W - M.right + 6, 12);
   }
 
-  [0, yMax / 2, yMax].forEach(v => {
-    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
-    const t = svgEl("text", { x: M.left - 8, y: y(v) + 3.5, "text-anchor": "end", "font-size": "11", class: "mono" });
-    t.textContent = fmt(v, 0); t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
-  });
-
-  refs.forEach(r => {
-    svg.appendChild(svgEl("line", {
-      x1: M.left, x2: W - M.right, y1: y(r.valor), y2: y(r.valor),
-      stroke: r.color, "stroke-width": 1.4, "stroke-dasharray": "5 3", opacity: 0.85,
-    }));
-  });
-  const etiquetas = refs.map(r => ({ ...r, ly: y(r.valor) })).sort((a, b) => a.ly - b.ly);
-  for (let i = 1; i < etiquetas.length; i++) {
-    if (etiquetas[i].ly - etiquetas[i - 1].ly < 12) etiquetas[i].ly = etiquetas[i - 1].ly + 12;
-  }
-  etiquetas.forEach(r => {
-    const t = svgEl("text", { x: W - M.right + 4, y: r.ly + 3.5, "font-size": "10.5", class: "mono", fill: r.color });
-    t.textContent = fmt(r.valor, 1);
-    svg.appendChild(t);
-  });
-
-  // Barras: un dia por barra (segun el DIA REAL de d.fecha, no el indice --
-  // si algun dia del mes faltara en el registro, esto evita que las barras
-  // siguientes se corran y queden mal rotuladas), redondeadas arriba, el
-  // dia de hoy resaltado con borde solido (todavia acumulando horas) y
-  // opacidad ligeramente menor en el resto para que "hoy" salte a la vista.
   const porDia = new Map();
   datos.forEach(d => porDia.set(Number(d.fecha.slice(8, 10)), d));
-  const bars = svgEl("g", {});
   porDia.forEach((d, dia) => {
-    const bx = x(dia) - barW / 2, by = y(d.aportes), bh = Math.max(0, y(0) - by);
-    const bar = svgEl("rect", {
-      x: bx, y: by, width: barW, height: bh, rx: Math.min(4, barW / 3),
-      fill: "var(--accent)", opacity: d.esHoy ? 0.95 : 0.72,
-    });
+    const by = y(d.aportes), bh = Math.max(0, y(0) - by);
+    const bar = svgEl("rect", { x: x(dia) - barW / 2, y: by, width: barW, height: bh, rx: Math.min(4, barW / 3), fill: "var(--accent)", opacity: d.esHoy ? 0.95 : 0.75 });
     if (d.esHoy) { bar.setAttribute("stroke", "var(--accent-deep)"); bar.setAttribute("stroke-width", "1.6"); }
-    bars.appendChild(bar);
+    svg.appendChild(bar);
   });
-  svg.appendChild(bars);
-
-  // Recta de tendencia (ajuste lineal de los ultimos <=7 dias cerrados) +
-  // una proyeccion punteada de 3 dias -- estimacion visual, no pronostico.
   if (tr) {
-    svg.appendChild(svgEl("line", {
-      x1: x(tr.xIni), y1: y(yTrend(tr.xIni)), x2: x(tr.xFin), y2: y(yTrend(tr.xFin)),
-      stroke: "var(--ink)", "stroke-width": 2, "stroke-linecap": "round", opacity: 0.92,
-    }));
-    if (diaProy > tr.xFin) {
-      svg.appendChild(svgEl("line", {
-        x1: x(tr.xFin), y1: y(yTrend(tr.xFin)),
-        x2: x(diaProy), y2: y(Math.max(0, yTrend(diaProy))),
-        stroke: "var(--ink)", "stroke-width": 1.6, "stroke-dasharray": "3 4", opacity: 0.45,
-      }));
-    }
+    svg.appendChild(svgEl("line", { x1: x(tr.xIni), y1: y(yTrend(tr.xIni)), x2: x(tr.xFin), y2: y(yTrend(tr.xFin)), stroke: "var(--ink)", "stroke-width": 2, "stroke-linecap": "round", opacity: 0.92 }));
+    if (diaProy > tr.xFin) svg.appendChild(svgEl("line", { x1: x(tr.xFin), y1: y(yTrend(tr.xFin)), x2: x(diaProy), y2: y(Math.max(0, yTrend(diaProy))), stroke: "var(--ink)", "stroke-width": 1.6, "stroke-dasharray": "3 4", opacity: 0.45 }));
     svg.appendChild(svgEl("circle", { cx: x(tr.xFin), cy: y(yTrend(tr.xFin)), r: 3, fill: "var(--ink)" }));
   }
-
-  // Dias del mes que aun no llegan (o que faltan en el registro): marcas
-  // fantasma en el eje, para que se entienda que el mes sigue en curso (no
-  // que "se acabaron los datos").
   for (let dia = 1; dia <= diasEnMes; dia++) {
-    if (porDia.has(dia)) continue;
-    svg.appendChild(svgEl("line", { x1: x(dia), x2: x(dia), y1: y(0) - 3, y2: y(0) + 3, stroke: "var(--faint)", "stroke-width": 1 }));
+    if (!porDia.has(dia)) svg.appendChild(svgEl("line", { x1: x(dia), x2: x(dia), y1: y(0) - 3, y2: y(0) + 3, stroke: "var(--faint)", "stroke-width": 1 }));
   }
-
-  const nTicks = Math.min(diasEnMes, 10);
-  const paso = Math.max(1, Math.round(diasEnMes / nTicks));
-  const idxTicks = new Set([1, diasEnMes]);
-  for (let d0 = paso; d0 < diasEnMes; d0 += paso) idxTicks.add(d0);
-  [...idxTicks].sort((a, b) => a - b).forEach(dia => {
-    const anchor = dia === 1 ? "start" : dia === diasEnMes ? "end" : "middle";
-    const t = svgEl("text", { x: x(dia), y: H - 8, "text-anchor": anchor, "font-size": "10.5", class: "mono" });
-    t.textContent = String(dia); t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
-  });
-
-  const overlay = svgEl("rect", { x: M.left, y: 0, width: Math.max(1, W - M.left - M.right), height: H, fill: "transparent" });
-  svg.appendChild(overlay);
-  overlay.addEventListener("mousemove", evt => {
+  const paso = angosto ? 7 : 3;
+  for (let dia = 1; dia <= diasEnMes; dia++) {
+    if (dia !== 1 && dia !== diasEnMes && dia % paso !== 0) continue;
+    if (dia !== diasEnMes && diasEnMes - dia < paso / 2) continue;
+    const t = svgEl("text", { x: x(dia), y: H - 10, "text-anchor": "middle", "font-size": "10.5", class: "mono" });
+    t.textContent = String(dia); t.setAttribute("fill", "var(--faint)"); svg.appendChild(t);
+  }
+  const ov = svgEl("rect", { x: M.left, y: 0, width: W - M.left - M.right, height: H, fill: "transparent" });
+  svg.appendChild(ov);
+  ov.addEventListener("mousemove", evt => {
     const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
     const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
-    let dia = Math.round((loc.x - M.left) / (W - M.left - M.right) * diasEnMes);
-    dia = Math.max(1, Math.min(diasEnMes, dia));
+    const dia = Math.max(1, Math.min(diasEnMes, Math.round((loc.x - M.left) / (W - M.left - M.right) * diasEnMes + 0.5)));
     const d = porDia.get(dia);
     if (!d) { hideTip(); return; }
-    const fecha = new Date(d.fecha + "T00:00:00");
-    const fechaLbl = fecha.toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
-    const pctDia = prom.todos ? d.aportes / prom.todos * 100 : null;
-    let filas = `<div class="tt-row"><span>Caudal afluente${d.esHoy ? " (hoy, parcial)" : ""}</span><b>${fmt(d.aportes, 2)} m³/s</b></div>`;
-    if (pctDia != null) filas += `<div class="tt-row"><span>% del promedio de ${nombreMes}</span><b>${fmt(pctDia, 0)}%</b></div>`;
-    if (prom.todos != null) filas += `<div class="tt-row"><span>Prom. histórico de ${nombreMes}</span><b>${fmt(prom.todos, 2)} m³/s</b></div>`;
-    if (prom.nino != null) filas += `<div class="tt-row"><span>Prom. en El Niño</span><b>${fmt(prom.nino, 2)} m³/s</b></div>`;
-    if (prom.nina != null) filas += `<div class="tt-row"><span>Prom. en La Niña</span><b>${fmt(prom.nina, 2)} m³/s</b></div>`;
-    showTip(`<b>${fechaLbl}</b>${filas}`, evt);
+    let html = `<b>${dia} de ${nombreMes}${d.esHoy ? " · hoy (parcial)" : ""}</b>` + fila("Caudal afluente", `${fmt(d.aportes, 1)} m³/s`)
+      + fila(`% del promedio de ${nombreMes}`, `${fmt(d.aportes / prom.todos * 100, 0)}%`);
+    if (rq) html += fila("Normal (P25–P75)", `${fmt(rq.p25, 0)}–${fmt(rq.p75, 0)}`);
+    showTip(html, evt);
   });
-  overlay.addEventListener("mouseleave", hideTip);
+  ov.addEventListener("mouseleave", hideTip);
 }
 
 // Un solo cajon para "Aportes en detalle" (hora a hora) y "Caudal afluente"
@@ -1953,7 +2191,6 @@ function actualizarVentana() {
   const estado = calcularEstado(ventanaDias);
   renderTankCota(estado);
   renderTankVolumen(estado);
-  renderTankCotaEquivalente(estado);
   renderHeroReadouts(estado);
   renderHallazgo(estado);
   renderExplorer(); // el "actual" de los 3 paneles del explorador usa esta misma ventana
@@ -1982,12 +2219,23 @@ document.querySelectorAll("#ventana-toggle button").forEach(btn => {
   const y = scaleLinear([yMin, yMax], [H - M.bottom, M.top]);
   const U = DATA.umbral_oni;
 
-  [Math.ceil(yMin), 0, 1, 2].forEach(v => {
-    if (v < yMin || v > yMax) return;
+  for (let v = Math.ceil(yMin); v <= Math.floor(yMax); v++) {
     svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
     const t = svgEl("text", { x: M.left - 8, y: y(v) + 4, "text-anchor": "end", class: "mono" });
-    t.textContent = v; t.setAttribute("fill", "var(--faint)"); t.setAttribute("font-size", "11");
+    t.textContent = v > 0 ? "+" + v : v; t.setAttribute("fill", "var(--faint)"); t.setAttribute("font-size", "11");
     svg.appendChild(t);
+  }
+  // intensidad NOAA: moderado >= 1.0, fuerte >= 1.5, muy fuerte >= 2.0
+  [[1.0, "moderado"], [1.5, "fuerte"], [2.0, "muy fuerte"]].forEach(([v, nombre]) => {
+    [v, -v].forEach(vv => {
+      if (vv < yMin || vv > yMax) return;
+      svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(vv), y2: y(vv), stroke: vv > 0 ? "var(--nino)" : "var(--nina)", "stroke-width": 0.8, "stroke-dasharray": "1 4", opacity: 0.6 }));
+    });
+    if (v <= yMax) {
+      const t = svgEl("text", { x: M.left + 4, y: y(v) - 3, "font-size": "9.5" });
+      t.textContent = nombre; t.setAttribute("fill", "var(--nino)"); t.setAttribute("opacity", "0.85");
+      svg.appendChild(t);
+    }
   });
   const years = [...new Set(data.map(d => d.fecha.slice(0, 4)))].filter((yr, i) => i % 3 === 0);
   years.forEach(yr => {
@@ -2054,61 +2302,214 @@ document.querySelectorAll("#ventana-toggle button").forEach(btn => {
   overlay.addEventListener("mouseleave", () => { crosshair.setAttribute("opacity", 0); dot.setAttribute("opacity", 0); hideTip(); });
 })();
 
-/* ---------------------------------------------------------------- panels B/C: severity bars */
+/* ---------------------------------------------------------------- panels B/C: severity (v2) */
+// Volumen util: barras desde 0 (el cero es real). Cota: puntos sobre una
+// escala acercada -- el cero de la cota es el nivel del mar, y en v1 las
+// barras desde 0 hacian que 109 y 120 msnm se vieran casi iguales.
+// El episodio en curso se marca: su minimo todavia no es definitivo.
 function renderSeverityBars(svgId, rows, valueKey, unitSuffix, refLine) {
   const svg = document.getElementById(svgId);
-  const W = 520, H = 320, M = { top: 26, right: 14, bottom: 78, left: 46 };
+  svg.innerHTML = "";
+  const W = 520, H = 320, M = { top: 30, right: 14, bottom: 78, left: 46 };
   const values = rows.map(r => r[valueKey]);
-  let yMin = Math.min(0, ...values), yMax = Math.max(...values) * 1.12;
-  if (refLine) yMin = Math.min(yMin, refLine.value - (yMax - yMin) * 0.06);
-  const y = scaleLinear([yMin, yMax], [H - M.bottom, M.top]);
+  const esPuntos = !!refLine;
+  const esc = esPuntos
+    ? niceScale(Math.min(...values, refLine.value) - 2, Math.max(...values) + 2, 5)
+    : niceScale(0, Math.max(...values) * 1.08, 5);
+  const y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
   const bw = (W - M.left - M.right) / rows.length;
-  const x = i => M.left + i * bw + bw * 0.12;
-
-  [yMin, (yMin + yMax) / 2, yMax].forEach(v => {
-    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
-    const t = svgEl("text", { x: M.left - 8, y: y(v) + 4, "text-anchor": "end", class: "mono", "font-size": "10" });
-    t.textContent = Math.round(v); t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
-  });
+  const xc = i => M.left + i * bw + bw / 2;
+  ejeY(svg, esc, y, M.left, W - M.right, 10);
+  const enCurso = V2.episodio_actual ? V2.episodio_actual.evento : null;
 
   if (refLine) {
     svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(refLine.value), y2: y(refLine.value), stroke: "var(--muted)", "stroke-width": 1.3, "stroke-dasharray": "3 3" }));
+    const t = svgEl("text", { x: W - M.right, y: y(refLine.value) + 13, "text-anchor": "end", "font-size": "10" });
+    t.textContent = `${refLine.label} ${fmt(refLine.value, 1)}`; t.setAttribute("fill", "var(--muted)"); svg.appendChild(t);
   }
+  const defs = svgEl("defs", {});
+  const pat = svgEl("pattern", { id: svgId + "Hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
+  pat.appendChild(svgEl("rect", { width: 6, height: 6, fill: "var(--panel)" }));
+  pat.appendChild(svgEl("line", { x1: 0, y1: 0, x2: 0, y2: 6, stroke: "var(--muted)", "stroke-width": 2.5 }));
+  defs.appendChild(pat); svg.appendChild(defs);
 
   rows.forEach((r, i) => {
-    const val = r[valueKey];
-    const bx = x(i), bwid = bw * 0.76;
-    const rect = svgEl("rect", { x: bx, y: y(val), width: bwid, height: 0, fill: COLOR_SEGUIMIENTO[r.alerta], rx: 3 });
-    const baseY = y(yMin), topY = y(val);
-    rect.setAttribute("y", topY);
-    rect.setAttribute("height", Math.max(2, baseY - topY));
-    svg.appendChild(rect);
-
-    rect.addEventListener("mousemove", evt => {
-      rect.setAttribute("opacity", 0.82);
-      showTip(`<b>${r.evento}</b>
-        <div class="tt-row"><span>ONI pico</span><b>${fmt(r.ONI_pico, 2)}</b></div>
-        <div class="tt-row"><span>Mínimo</span><b>${fmt(val, 0)} ${unitSuffix}</b></div>
-        <div class="tt-row"><span>Fecha del mínimo</span><span>${r.fecha_minimo}</span></div>
-        <div class="tt-row"><span>Tasa de caída</span><span>${fmt(r["tasa_descenso_" + (unitSuffix === "hm³" ? "hm3" : "msnm") + "_mes"], 1)} ${unitSuffix}/mes</span></div>
-        <div class="tt-row"><span>Alerta</span><b style="color:${COLOR_SEGUIMIENTO[r.alerta]}">${LABEL_SEGUIMIENTO[r.alerta]}</b></div>`, evt);
+    const val = r[valueKey], cx = xc(i), actual = r.evento === enCurso;
+    const color = COLOR_SEGUIMIENTO[r.alerta];
+    let marca;
+    if (esPuntos) {
+      svg.appendChild(svgEl("line", { x1: cx, x2: cx, y1: y(esc.min), y2: y(val), stroke: color, "stroke-width": 3, opacity: actual ? 0.5 : 0.85, "stroke-dasharray": actual ? "3 3" : "none" }));
+      marca = svgEl("circle", { cx, cy: y(val), r: 8, fill: actual ? "var(--panel)" : color, stroke: color, "stroke-width": actual ? 2.5 : 0 });
+    } else {
+      const bwid = bw * 0.72;
+      marca = svgEl("rect", { x: cx - bwid / 2, y: y(val), width: bwid, height: Math.max(2, y(esc.min) - y(val)), rx: 3,
+        fill: actual ? `url(#${svgId}Hatch)` : color, stroke: actual ? color : "none", "stroke-width": actual ? 2 : 0 });
+    }
+    svg.appendChild(marca);
+    marca.addEventListener("mousemove", evt => {
+      showTip(`<b>${r.evento}${actual ? " · en curso" : ""}</b>`
+        + fila("ONI pico", fmt(r.ONI_pico, 2)) + fila(actual ? "Mínimo hasta hoy" : "Mínimo", `${fmt(val, unitSuffix === "hm³" ? 0 : 2)} ${unitSuffix}`)
+        + fila("Fecha del mínimo", r.fecha_minimo)
+        + fila("Tasa de caída", `${fmt(r["tasa_descenso_" + (unitSuffix === "hm³" ? "hm3" : "msnm") + "_mes"], 1)} ${unitSuffix}/mes`)
+        + fila("Alerta", `<span style="color:${INK_SEGUIMIENTO[r.alerta]}">${LABEL_SEGUIMIENTO[r.alerta]}</span>`), evt);
     });
-    rect.addEventListener("mouseleave", () => { rect.setAttribute("opacity", 1); hideTip(); });
-
-    const vt = svgEl("text", { x: bx + bwid / 2, y: topY - 6, "text-anchor": "middle", "font-size": "10.5", "font-weight": "700", class: "mono" });
-    vt.textContent = fmt(val, 0); vt.setAttribute("fill", "var(--ink)");
-    svg.appendChild(vt);
-
-    const lbl = svgEl("text", { x: bx + bwid / 2, y: H - M.bottom + 14, "text-anchor": "end", "font-size": "10" });
-    lbl.textContent = r.evento; lbl.setAttribute("fill", "var(--muted)");
-    lbl.setAttribute("transform", `rotate(-40 ${bx + bwid / 2} ${H - M.bottom + 14})`);
+    marca.addEventListener("mouseleave", hideTip);
+    const vt = svgEl("text", { x: cx, y: y(val) - (esPuntos ? 13 : 6), "text-anchor": "middle", "font-size": "10.5", "font-weight": "700", class: "mono" });
+    vt.textContent = fmt(val, 0); vt.setAttribute("fill", "var(--ink)"); svg.appendChild(vt);
+    if (actual) {
+      const ec = svgEl("text", { x: cx, y: y(val) - (esPuntos ? 26 : 19), "text-anchor": "middle", "font-size": "9.5", "font-weight": "700" });
+      ec.textContent = "en curso"; ec.setAttribute("fill", "var(--muted)"); svg.appendChild(ec);
+    }
+    const lbl = svgEl("text", { x: cx, y: H - M.bottom + 14, "text-anchor": "end", "font-size": "10" });
+    lbl.textContent = r.evento; lbl.setAttribute("fill", actual ? "var(--ink)" : "var(--muted)");
+    lbl.setAttribute("transform", `rotate(-40 ${cx} ${H - M.bottom + 14})`);
     svg.appendChild(lbl);
   });
 }
 renderSeverityBars("chart-vu", DATA.descenso_vu, "minimo_hm3", "hm³", null);
 renderSeverityBars("chart-nivel", DATA.descenso_nivel, "minimo_msnm", "msnm",
   { value: DATA.niveles_referencia.NMIT, label: "mínimo técnico" });
+
+/* ---------------------------------------------------------------- v2: trayectoria del año / episodio analogo */
+let trayModo = "anio", trayVar = "volumen_util_hm3";
+
+function renderTrayectoria() {
+  const svg = document.getElementById("chart-trayectoria");
+  const W = anchoDe(svg, 320, 1120), angosto = W < 640;
+  const H = angosto ? 300 : 380, M = { top: 18, right: angosto ? 56 : 92, bottom: 30, left: angosto ? 44 : 56 };
+  prepararSvg(svg, W, H);
+  const esVu = trayVar === "volumen_util_hm3", dec = esVu ? 0 : 2, unidad = esVu ? "hm³" : "msnm";
+  const T = V2.trayectoria[trayVar], anio = V2.trayectoria.anio;
+  const leg = document.getElementById("tray-legend"), read = document.getElementById("tray-read");
+  const techo = esVu ? DATA.volumen_util_max_hm3 : DATA.niveles_referencia.NMAX_OPER;
+
+  if (trayModo === "anio") {
+    document.getElementById("tray-note").textContent =
+      `${esVu ? "Volumen útil" : "Cota"} de cada día de ${anio} contra lo que hizo el embalse en los años El Niño desde 2005 (mismo día del año, suavizado).`;
+    const doys = Array.from({ length: 366 }, (_, i) => i + 1);
+    const act = T.anio_actual;
+    const vals = [...T.nino_p10, ...T.nino_p90, ...act.map(p => p[1]), techo].filter(v => v != null);
+    const esc = niceScale(Math.min(...vals) - (esVu ? 20 : 0.5), Math.max(...vals) + (esVu ? 20 : 0.3), 6);
+    const x = scaleLinear([1, 366], [M.left, W - M.right]), y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+    const xs = doys.map(x);
+    svg.appendChild(svgEl("path", { d: pathBanda(xs, T.nino_p10.map(y), T.nino_p90.map(y)), fill: "var(--nino)", opacity: 0.15 }));
+    ejeY(svg, esc, y, M.left, W - M.right, angosto ? 10 : 11);
+    MESES_CORTO.forEach((mn, i) => {
+      const d0 = Math.round((Date.UTC(2025, i, 1) - Date.UTC(2025, 0, 1)) / 86400000) + 1;
+      if (angosto && i % 2) return;
+      const t = svgEl("text", { x: x(d0 + 14), y: H - 10, "text-anchor": "middle", "font-size": "10.5", class: "mono" });
+      t.textContent = mn; t.setAttribute("fill", "var(--faint)"); svg.appendChild(t);
+      svg.appendChild(svgEl("line", { x1: x(d0), x2: x(d0), y1: H - M.bottom, y2: H - M.bottom + 4, stroke: "var(--line-strong)" }));
+    });
+    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(techo), y2: y(techo), stroke: "var(--ink)", "stroke-width": 1.2, "stroke-dasharray": "5 3", opacity: 0.6 }));
+    svg.appendChild(svgEl("path", { d: pathLinea(xs, T.todos_p50.map(y)), fill: "none", stroke: "var(--neutral-phase)", "stroke-width": 1.5, "stroke-dasharray": "5 3" }));
+    svg.appendChild(svgEl("path", { d: pathLinea(xs, T.nino_p50.map(y)), fill: "none", stroke: "var(--nino)", "stroke-width": 1.6, "stroke-dasharray": "5 3" }));
+    svg.appendChild(svgEl("path", { d: pathLinea(act.map(p => x(p[0])), act.map(p => y(p[1]))), fill: "none", stroke: "var(--accent)", "stroke-width": 2.8 }));
+    const ult = act[act.length - 1];
+    svg.appendChild(svgEl("circle", { cx: x(ult[0]), cy: y(ult[1]), r: 5.5, fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2 }));
+    etiquetasDerecha(svg, [
+      { y: y(techo), texto: `máx ${fmt(techo, esVu ? 0 : 1)}`, color: "var(--muted)" },
+      { y: y(T.todos_p50[365]), texto: "mediana", color: "var(--muted)" },
+      { y: y(T.nino_p50[365]), texto: "El Niño", color: "var(--nino)" },
+    ], W - M.right + 6, 12);
+    const lbl = svgEl("text", { x: x(ult[0]) - 8, y: y(ult[1]) - 12, "text-anchor": "end", "font-size": "11.5", "font-weight": "800", class: "mono" });
+    lbl.textContent = `${anio}: ${fmt(ult[1], dec)}`; lbl.setAttribute("fill", "var(--accent)"); svg.appendChild(lbl);
+
+    const k = ult[0] - 1;
+    const difN = ult[1] - T.nino_p50[k], difT = ult[1] - T.todos_p50[k];
+    const pos = ult[1] < T.nino_p10[k] ? "por debajo del 90% de los años El Niño"
+      : ult[1] > T.nino_p90[k] ? "por encima del rango típico de los años El Niño" : "dentro del rango típico de los años El Niño";
+    read.innerHTML = `El promedio de hoy ${esVu ? "del volumen útil" : "de la cota"} (<b>${fmt(ult[1], dec)} ${unidad}</b>) está <b>${pos}</b> para esta fecha: `
+      + `${signo(difN, dec)} ${unidad} frente a su mediana y ${signo(difT, dec)} ${unidad} frente a la mediana de todos los años.`;
+    leg.innerHTML = `
+      <span><i style="border-top-color:var(--accent)"></i>${anio}</span>
+      <span><i style="width:14px;height:10px;border:none;border-radius:2px;background:var(--nino);opacity:.35"></i>Rango de años El Niño (P10–P90)</span>
+      <span><i class="dashed" style="border-top-color:var(--nino)"></i>Mediana en años El Niño</span>
+      <span><i class="dashed" style="border-top-color:var(--neutral-phase)"></i>Mediana de todos los años</span>
+      <span><i class="dashed" style="border-top-color:var(--ink)"></i>Máx. de operación vigente</span>`;
+    hoverTray(svg, W, H, M, x, d => {
+      const kk = Math.max(0, Math.min(365, d - 1)), p = act.find(q => q[0] === d);
+      const f = new Date(Date.UTC(anio, 0, 1) + (d - 1) * 86400000);
+      return `<b>${f.getUTCDate()} de ${MESES_LARGO[f.getUTCMonth()]}</b>`
+        + (p ? fila(String(anio), `${fmt(p[1], dec)} ${unidad}`) : "")
+        + fila("Mediana El Niño", `${fmt(T.nino_p50[kk], dec)}`) + fila("Rango El Niño", `${fmt(T.nino_p10[kk], dec)}–${fmt(T.nino_p90[kk], dec)}`)
+        + fila("Mediana todos los años", `${fmt(T.todos_p50[kk], dec)}`);
+    }, [1, 366]);
+    return;
+  }
+
+  // ---- episodio actual vs. episodio analogo, alineados desde su inicio
+  const e = V2.episodio_actual, a = V2.analogo;
+  if (!e || !a) { read.textContent = "No hay un episodio El Niño en curso para comparar."; leg.innerHTML = ""; return; }
+  const sAct = esVu ? e.serie_vu : e.serie_nivel, sAna = esVu ? a.serie_vu : a.serie_nivel;
+  const diasMax = sAna[sAna.length - 1][0];
+  document.getElementById("tray-note").textContent =
+    `El episodio en curso (${e.evento}, ONI pico ${fmt(e.oni_pico, 2)}) contra el episodio El Niño más fuerte con registro completo (${a.evento}, ONI pico ${fmt(a.oni_pico, 2)}), contados desde el mes en que empezó cada uno.`;
+  const vals = [...sAct.map(p => p[1]), ...sAna.map(p => p[1]), techo];
+  const esc = niceScale(Math.min(...vals) - (esVu ? 20 : 0.5), Math.max(...vals) + (esVu ? 20 : 0.3), 6);
+  const x = scaleLinear([0, diasMax], [M.left, W - M.right]), y = scaleLinear([esc.min, esc.max], [H - M.bottom, M.top]);
+  ejeY(svg, esc, y, M.left, W - M.right, angosto ? 10 : 11);
+  for (let mth = 0; mth * 30.44 <= diasMax; mth += angosto ? 6 : 3) {
+    const t = svgEl("text", { x: x(mth * 30.44), y: H - 10, "text-anchor": mth === 0 ? "start" : "middle", "font-size": "10.5", class: "mono" });
+    t.textContent = mth === 0 ? "inicio" : `+${mth} m`; t.setAttribute("fill", "var(--faint)"); svg.appendChild(t);
+  }
+  const finAna = a.dias_hasta_fin;
+  svg.appendChild(svgEl("line", { x1: x(finAna), x2: x(finAna), y1: M.top, y2: H - M.bottom, stroke: "var(--nina)", "stroke-dasharray": "2 4", opacity: 0.7 }));
+  const tf = svgEl("text", { x: x(finAna) - 4, y: M.top + 10, "text-anchor": "end", "font-size": "10" });
+  tf.textContent = "fin del episodio análogo"; tf.setAttribute("fill", "var(--nina)"); svg.appendChild(tf);
+  svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(techo), y2: y(techo), stroke: "var(--ink)", "stroke-width": 1.2, "stroke-dasharray": "5 3", opacity: 0.6 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(sAna.map(p => x(p[0])), sAna.map(p => y(p[1]))), fill: "none", stroke: "var(--nina)", "stroke-width": 2 }));
+  svg.appendChild(svgEl("path", { d: pathLinea(sAct.map(p => x(p[0])), sAct.map(p => y(p[1]))), fill: "none", stroke: "var(--accent)", "stroke-width": 2.8 }));
+  const ult = sAct[sAct.length - 1], minA = sAna.reduce((m0, p) => p[1] < m0[1] ? p : m0, sAna[0]);
+  svg.appendChild(svgEl("line", { x1: x(ult[0]), x2: x(ult[0]), y1: M.top, y2: H - M.bottom, stroke: "var(--accent)", "stroke-dasharray": "2 3", opacity: 0.6 }));
+  svg.appendChild(svgEl("circle", { cx: x(ult[0]), cy: y(ult[1]), r: 5.5, fill: "var(--accent)", stroke: "var(--panel)", "stroke-width": 2 }));
+  svg.appendChild(svgEl("circle", { cx: x(minA[0]), cy: y(minA[1]), r: 5, fill: "var(--nina)", stroke: "var(--panel)", "stroke-width": 2 }));
+  const fMin = new Date(fechaBogota(a.inicio).getTime() + minA[0] * 86400000);
+  const tm = svgEl("text", { x: x(minA[0]), y: y(minA[1]) + 18, "text-anchor": "middle", "font-size": "10.5", "font-weight": "700", class: "mono" });
+  tm.textContent = `mín ${fmt(minA[1], dec)} (${MESES_CORTO[fMin.getUTCMonth()]}-${fMin.getUTCFullYear()})`; tm.setAttribute("fill", "var(--nina)"); svg.appendChild(tm);
+  const th = svgEl("text", { x: x(ult[0]) + 6, y: M.top + 10, "font-size": "10.5", "font-weight": "700" });
+  th.textContent = "hoy"; th.setAttribute("fill", "var(--accent)"); svg.appendChild(th);
+  etiquetasDerecha(svg, [{ y: y(techo), texto: `máx ${fmt(techo, esVu ? 0 : 1)}`, color: "var(--muted)" }], W - M.right + 6);
+
+  const mismoDia = sAna.reduce((b, p) => Math.abs(p[0] - ult[0]) < Math.abs(b[0] - ult[0]) ? p : b, sAna[0]);
+  read.innerHTML = `El episodio actual lleva <b>${ult[0]} días</b>. A esa misma altura del episodio ${a.evento}, ${esVu ? "el volumen útil" : "la cota"} era `
+    + `<b>${fmt(mismoDia[1], dec)} ${unidad}</b> (hoy: <b>${fmt(ult[1], dec)} ${unidad}</b>). Ese episodio llegó a su mínimo, <b>${fmt(minA[1], dec)} ${unidad}</b>, `
+    + `${minA[0]} días después de empezar (${MESES_LARGO[fMin.getUTCMonth()]} de ${fMin.getUTCFullYear()}) — ${minA[0] - ult[0] > 0 ? `es decir, unos ${Math.round((minA[0] - ult[0]) / 30.44)} meses más adelante de donde va el episodio actual` : "antes de este punto del episodio actual"}. Es una referencia, no un pronóstico.`;
+  leg.innerHTML = `
+    <span><i style="border-top-color:var(--accent)"></i>Episodio actual (${e.evento})</span>
+    <span><i style="border-top-color:var(--nina)"></i>Episodio análogo (${a.evento})</span>
+    <span><i class="dashed" style="border-top-color:var(--ink)"></i>Máx. de operación vigente</span>`;
+  hoverTray(svg, W, H, M, x, d => {
+    const pa = sAct.find(q => q[0] === d), pn = sAna.find(q => q[0] === d);
+    return `<b>Día ${d} del episodio (+${fmt(d / 30.44, 1)} meses)</b>`
+      + (pa ? fila(e.evento, `${fmt(pa[1], dec)} ${unidad}`) : "") + (pn ? fila(a.evento, `${fmt(pn[1], dec)} ${unidad}`) : "");
+  }, [0, diasMax]);
+}
+
+function hoverTray(svg, W, H, M, x, htmlFn, dominio) {
+  const vl = svgEl("line", { y1: M.top, y2: H - M.bottom, stroke: "var(--muted)", opacity: 0 });
+  svg.appendChild(vl);
+  const ov = svgEl("rect", { x: M.left, y: 0, width: W - M.left - M.right, height: H, fill: "transparent" });
+  svg.appendChild(ov);
+  ov.addEventListener("mousemove", evt => {
+    const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+    const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const d = Math.round(dominio[0] + (loc.x - M.left) / (W - M.left - M.right) * (dominio[1] - dominio[0]));
+    vl.setAttribute("x1", x(d)); vl.setAttribute("x2", x(d)); vl.setAttribute("opacity", 0.5);
+    showTip(htmlFn(d), evt);
+  });
+  ov.addEventListener("mouseleave", () => { vl.setAttribute("opacity", 0); hideTip(); });
+}
+
+function initTrayectoria() {
+  [["#tray-modo", b => { trayModo = b.dataset.m; }], ["#tray-var", b => { trayVar = b.dataset.v; }]].forEach(([sel, fn]) => {
+    document.querySelectorAll(`${sel} button`).forEach(btn => btn.addEventListener("click", () => {
+      document.querySelectorAll(`${sel} button`).forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); fn(btn); renderTrayectoria();
+    }));
+  });
+  renderTrayectoria();
+}
 
 /* ---------------------------------------------------------------- panel E: month explorer */
 const VAR_META = {
@@ -2162,18 +2563,14 @@ function renderExplorer() {
   const allVals = Object.values(porFase).flat().map(d => d.val);
   let yMin = Math.min(...allVals), yMax = Math.max(...allVals);
   if (valActual !== null) { yMin = Math.min(yMin, valActual); yMax = Math.max(yMax, valActual); }
-  const pad = (yMax - yMin) * 0.12 || 1;
-  yMin -= pad; yMax += pad;
+  const pad = (yMax - yMin) * 0.08 || 1;
+  const escE = niceScale(yMin - pad, yMax + pad, 6);
+  yMin = escE.min; yMax = escE.max;
   const y = scaleLinear([yMin, yMax], [H - M.bottom, M.top]);
   const colw = (W - M.left - M.right) / fases.length;
   const xFor = i => M.left + colw * i + colw / 2;
 
-  [yMin + pad * 0.3, (yMin + yMax) / 2, yMax - pad * 0.3].forEach(v => {
-    svg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y(v), y2: y(v), class: "gridline" }));
-    const t = svgEl("text", { x: M.left - 10, y: y(v) + 4, "text-anchor": "end", class: "mono", "font-size": "11" });
-    t.textContent = fmt(v, meta.dec); t.setAttribute("fill", "var(--faint)");
-    svg.appendChild(t);
-  });
+  ejeY(svg, escE, y, M.left, W - M.right, 11);
 
   const ylabel = svgEl("text", { x: -H / 2, y: 16, "text-anchor": "middle", "font-size": "12", transform: "rotate(-90)" });
   ylabel.textContent = `${meta.label} (${meta.unit})`; ylabel.setAttribute("fill", "var(--muted)");
@@ -2221,13 +2618,14 @@ function renderExplorer() {
   const mesNombre = DATA.meses_nombre[explorerMes - 1];
   if (esMesActual) {
     const notaVentana = ` (${ventanaDias === 0 ? "hoy" : "cierre de " + etiquetaVentana(ventanaDias)} — ajústalo en la sección 2)`;
-    cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. La línea negra es el valor <b>actual</b>${notaVentana} (${fmt(valActual, meta.dec)} ${meta.unit}) — compáralo contra la caja de "El Niño" para ver si ya estamos en el rango bajo típico de esos años.`;
+    cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. La línea discontinua es el valor <b>actual</b>${notaVentana} (${fmt(valActual, meta.dec)} ${meta.unit}) — compáralo contra la caja de "El Niño" para ver si ya estamos en el rango bajo típico de esos años.`;
   } else {
     cap.innerHTML = `Cada punto es un ${mesNombre} distinto del registro 2001–2026, agrupado por la fase ENSO de ese mes. Elige el mes en curso en el selector para ver el valor actual superpuesto.`;
   }
 }
 
 renderOniDial();
+renderOniSpark();
 renderAlertaCriticaOperacion();
 actualizarVentana(); // calcula el estado inicial ("hoy") y dispara el primer renderExplorer()
 initHistorialAlertas();
@@ -2235,4 +2633,21 @@ renderValoresGrid();
 initRecienteGrid();
 initCdControls();
 cambiarModoPrincipalCd(cdModoPrincipal);
+initTrayectoria();
+actualizarFrescura();
+setInterval(actualizarFrescura, 60000);
+
+// v2: las graficas se dibujan al ancho real de su contenedor -> redibujar
+// al cambiar el tamaño de la ventana (o girar el celular).
+let _anchoPrevio = window.innerWidth, _timerResize = null;
+window.addEventListener("resize", () => {
+  clearTimeout(_timerResize);
+  _timerResize = setTimeout(() => {
+    if (Math.abs(window.innerWidth - _anchoPrevio) < 8) return;
+    _anchoPrevio = window.innerWidth;
+    cambiarModoPrincipalCd(cdModoPrincipal);
+    renderMiniCharts();
+    renderTrayectoria();
+  }, 180);
+});
 </script>
