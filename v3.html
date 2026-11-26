@@ -443,8 +443,7 @@
   .proy-num, .proy-ctrl select { font: 600 13px ui-monospace, monospace; padding: 5px 7px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--panel); color: var(--ink); width: 9ch; }
   .proy-ctrl select { width: auto; }
   .proy-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 14px; }
-  .proy-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; }
-  @media (max-width: 1300px) { .proy-body { grid-template-columns: minmax(0, 1fr); } }
+  .proy-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .proy-pie { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 14px; margin-top: 14px; }
   .proy-tag { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; vertical-align: 1px; white-space: nowrap; }
   .pron-estado { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: -4px 0 12px; font-size: 13px; color: var(--muted); }
@@ -457,41 +456,45 @@
   .proy-btn:hover { background: var(--accent-wash); }
   .proy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .proy-tabla-scroll { overflow-x: auto; }
-  table.programa { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 470px; }
-  table.programa tr.aviso-fila td { border-top: none; padding-top: 0; white-space: normal; text-align: left; }
-  #proy-verif { overflow-x: auto; }
-  table.programa th { text-align: right; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 700; padding: 4px 6px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  table.programa th:first-child, table.programa td:first-child { text-align: left; }
-  table.programa td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: right; font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
-  table.programa td.txt { font-family: inherit; }
-  table.programa td .r { color: var(--faint); font-size: 11px; }
-  table.programa tr.hoy td { background: var(--accent-wash); }
-  table.programa tr.sin-pron td { color: var(--muted); }
-  table.programa input { width: 7ch; font: 700 12.5px ui-monospace, monospace; text-align: right; padding: 4px 5px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--panel); color: var(--ink); }
+  table.programa { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+  table.programa th, table.programa td { padding: 6px 6px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; vertical-align: middle; }
+  table.programa td { font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  table.programa thead th { font-size: 12px; font-weight: 700; color: var(--ink); }
+  table.programa tbody th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 700; }
+  table.programa tbody th, table.programa thead th.esq { position: sticky; left: 0; z-index: 1; background: var(--paper); box-shadow: 1px 0 0 var(--line); }
+  table.programa .r { display: block; font-size: 10.5px; color: var(--faint); font-weight: 500; margin-top: 1px; }
+  table.programa .hoy { background: var(--accent-wash); }
+  table.programa .sin-pron { color: var(--muted); }
+  table.programa tr.fila-descarga td { padding-top: 8px; padding-bottom: 8px; }
+  table.programa input { width: 6.5ch; font: 700 13px ui-monospace, monospace; text-align: center; padding: 5px 3px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--panel); color: var(--ink); }
   table.programa input.manual { border-color: var(--accent); background: var(--accent-wash); }
   table.programa input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  table.programa .aviso-ico { color: var(--serious); font-weight: 800; cursor: help; }
+  .avisos-lista { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; }
   .aviso-celda { color: var(--serious); font-family: inherit; font-weight: 600; font-size: 11.5px; }
   table.verif { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; }
   table.verif th { text-align: right; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 700; padding: 3px 6px 5px; border-bottom: 1px solid var(--line); }
   table.verif td { text-align: right; padding: 4px 6px; border-bottom: 1px solid var(--line); font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
   table.verif th:first-child, table.verif td:first-child { text-align: left; }
   table.verif tr:last-child td { border-bottom: none; }
-  table.programa .lbl-c, table.programa .br-m { display: none; }
-  @media (max-width: 560px) {
-    table.programa { min-width: 0; font-size: 12px; }
-    table.programa .col-bal, table.programa .col-rango { display: none; }
-    table.programa td, table.programa th { padding: 4px 3px; }
-    table.programa .proy-tag { font-size: 10px; padding: 2px 6px; }
-    table.programa th, table.programa td { white-space: normal; }
-    table.programa td .r { font-size: 10px; }
-    table.programa input { width: 6.5ch; padding: 4px 3px; }
-    table.programa td:first-child, table.programa .rango-c { white-space: nowrap; }
-    .proy-tabla-caja { padding: 12px 10px; }
-    #panel-proy > .panel { padding: 14px 10px; }
+  table.programa .lbl-c { display: none; }
+  #proy-verif { overflow-x: auto; }
+  /* 15 dias: columnas mas angostas para que quepan sin desplazar */
+  table.programa.compacta th, table.programa.compacta td { padding: 5px 3px; }
+  table.programa.compacta .r { font-size: 10px; }
+  table.programa.compacta input { width: 5.8ch; }
+  table.programa.compacta .lbl-l { display: none; }
+  table.programa.compacta .lbl-c { display: inline; }
+  @media (max-width: 700px) {
+    table.programa { font-size: 12px; }
+    table.programa th, table.programa td { padding: 5px 4px; }
     table.programa .lbl-l { display: none; }
     table.programa .lbl-c { display: inline; }
-    table.programa .br-m { display: inline; }
+    .proy-tabla-caja { padding: 12px 10px; }
+    table.programa tbody th { white-space: normal; font-size: 9.5px; min-width: 62px; max-width: 72px; }
+    table.programa tbody th .r { display: none; }
   }
+  @media (max-width: 560px) { #panel-proy > .panel { padding: 14px 10px; } }
   table.hitos { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; }
   table.hitos th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 700; padding: 4px 6px 6px; border-bottom: 1px solid var(--line); }
   table.hitos td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -572,9 +575,6 @@
           <div class="caja-k">Cota al cierre de cada día: observada y proyectada</div>
           <div class="chart-fluid"><svg id="chart-proy"></svg></div>
           <div class="rf-legend" id="proy-legend"></div>
-          <div class="caja-k" style="margin-top:14px">Caudales: aporte pronosticado y descarga programada</div>
-          <div class="chart-fluid"><svg id="chart-proy-caudal"></svg></div>
-          <div class="rf-legend" id="proy-legend-caudal"></div>
         </div>
         <div class="caja proy-tabla-caja">
           <div class="proy-tabla-head">
@@ -587,6 +587,11 @@
           </div>
           <div class="proy-tabla-scroll"><table class="programa" id="proy-tabla"></table></div>
           <div class="caja-s" id="proy-tabla-nota"></div>
+        </div>
+        <div class="caja">
+          <div class="caja-k">Caudales: aporte pronosticado y descarga programada</div>
+          <div class="chart-fluid"><svg id="chart-proy-caudal"></svg></div>
+          <div class="rf-legend" id="proy-legend-caudal"></div>
         </div>
       </div>
 
@@ -3072,28 +3077,35 @@ function renderKpisProy(E) {
 function renderTablaPrograma(E) {
   const H = PROY.horizonte, filas = E.dias.slice(0, H);
   const tMax = LIM.turbinado_max_diario, dMin = LIM.descarga_min_diaria;
-  const rows = filas.map((x, i) => {
-    const avisos = [];
-    if (tMax && x.D > tMax) avisos.push(`supera el turbinado máximo observado (${fmt(tMax, 0)})`);
-    if (dMin && x.D < dMin) avisos.push(`bajo la descarga mínima observada (${fmt(dMin, 0)})`);
-    if (x.vertido > 0.5) avisos.push(`llega a la máxima: vierte ≈ ${fmt(x.vertido, 0)} m³/s`);
-    if (x.deficit) avisos.push("no alcanza el agua: bajo el mínimo técnico");
-    if (x.origen !== "pronostico" && PROY.aportes !== "tendencia") avisos.push("sin pronóstico: tendencia");
-    const bal = x.q - x.D;
-    const ap = x.p10 != null ? `${fmt(x.q, 0)} <span class="r col-rango">${fmt(x.p10, 0)}–${fmt(x.p90, 0)}</span>` : fmt(x.q, 0);
-    return `<tr class="${i === 0 ? "hoy" : ""} ${x.origen !== "pronostico" && PROY.aportes !== "tendencia" ? "sin-pron" : ""}">
-      <td class="txt">${i === 0 ? `<b>Hoy</b><br class="br-m"> <span class="r">resto, ${x.horas || Math.round(x.frac * 24)} h</span>` : etiquetaDia(x.iso).replace(" ", "<br class=\"br-m\"> ")}</td>
-      <td>${ap}</td>
-      <td><input type="number" inputmode="decimal" min="0" max="3000" step="5" data-fecha="${x.iso}" data-i="${i}" value="${Math.round(x.D)}"
-        class="${x.manual ? "manual" : ""}" aria-label="Descarga programada para ${etiquetaDia(x.iso)}, en metros cúbicos por segundo"></td>
-      <td class="col-bal" style="color:${bal >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(bal, 0)}</td>
-      <td><b>${fmt(x.cota, 2)}</b><br><span class="r rango-c">${fmtCotaRango(x).replace(" – ", "–")}</span></td>
-      <td class="txt"><span class="proy-tag" style="background:${WASH_SEGUIMIENTO[x.nivel]};color:${INK_SEGUIMIENTO[x.nivel]}" title="${LABEL_SEGUIMIENTO[x.nivel]}"><span class="lbl-l">${LABEL_SEGUIMIENTO[x.nivel]}</span><span class="lbl-c">${LETRA_SEGUIMIENTO[x.nivel]}</span></span></td>
-    </tr>${avisos.length ? `<tr class="aviso-fila"><td colspan="6" class="txt aviso-celda">⚠ ${avisos.join(" · ")}</td></tr>` : ""}`;
+  const avisosDe = x => {
+    const a = [];
+    if (tMax && x.D > tMax) a.push(`supera el turbinado máximo observado (${fmt(tMax, 0)} m³/s)`);
+    if (dMin && x.D < dMin) a.push(`bajo la descarga mínima observada (${fmt(dMin, 0)} m³/s)`);
+    if (x.vertido > 0.5) a.push(`llega a la máxima: vierte ≈ ${fmt(x.vertido, 0)} m³/s`);
+    if (x.deficit) a.push("no alcanza el agua: bajo el mínimo técnico");
+    if (x.origen !== "pronostico" && PROY.aportes !== "tendencia") a.push("sin pronóstico, se usa la tendencia");
+    return a;
+  };
+  const avisos = filas.map(avisosDe);
+  const clase = (x, i) => `${i === 0 ? "hoy" : ""} ${x.origen !== "pronostico" && PROY.aportes !== "tendencia" ? "sin-pron" : ""}`;
+  const fila = (rotulo, fn, cls = "") => `<tr class="${cls}"><th scope="row">${rotulo}</th>${filas.map((x, i) => `<td class="${clase(x, i)}">${fn(x, i)}</td>`).join("")}</tr>`;
+  const cab = filas.map((x, i) => {
+    const [dow, dm] = etiquetaDia(x.iso).split(" ");
+    return `<th scope="col" class="${clase(x, i)}">${i === 0 ? `Hoy<span class="r">resto, ${x.horas || Math.round(x.frac * 24)} h</span>` : `${dow}<span class="r">${dm}</span>`}</th>`;
   }).join("");
-  document.getElementById("proy-tabla").innerHTML = `
-    <thead><tr><th>Día</th><th>Aporte m³/s <span class="r col-rango">P10–P90</span></th><th>Descarga m³/s</th><th class="col-bal">Balance</th><th>Cota cierre <span class="r">rango</span></th><th style="text-align:left">Nivel</th></tr></thead>
-    <tbody>${rows}</tbody>`;
+  const tabla = document.getElementById("proy-tabla");
+  tabla.className = "programa" + (H > 10 ? " compacta" : "");
+  tabla.innerHTML = `
+    <thead><tr><th scope="col" class="esq"></th>${cab}</tr></thead>
+    <tbody>
+      ${fila(`Aporte m³/s<span class="r">P10–P90</span>`, x => `${fmt(x.q, 0)}${x.p10 != null ? `<span class="r">${fmt(x.p10, 0)}–${fmt(x.p90, 0)}</span>` : ""}`)}
+      ${fila("Descarga m³/s", (x, i) => `<input type="number" inputmode="decimal" min="0" max="3000" step="5" data-fecha="${x.iso}" data-i="${i}" value="${Math.round(x.D)}"
+        class="${x.manual ? "manual" : ""}" aria-label="Descarga programada para ${etiquetaDia(x.iso)}, en metros cúbicos por segundo">`, "fila-descarga")}
+      ${fila("Balance m³/s", x => `<span style="color:${x.q - x.D >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(x.q - x.D, 0)}</span>`)}
+      ${fila(`Cota al cierre<span class="r">rango probable</span>`, x => `<b>${fmt(x.cota, 2)}</b><span class="r">${fmtCotaRango(x).replace(" – ", "–")}</span>`)}
+      ${fila("Nivel", x => `<span class="proy-tag" style="background:${WASH_SEGUIMIENTO[x.nivel]};color:${INK_SEGUIMIENTO[x.nivel]}" title="${LABEL_SEGUIMIENTO[x.nivel]}"><span class="lbl-l">${LABEL_SEGUIMIENTO[x.nivel]}</span><span class="lbl-c">${LETRA_SEGUIMIENTO[x.nivel]}</span></span>`)}
+      ${avisos.some(a => a.length) ? fila("Avisos", (x, i) => avisos[i].length ? `<span class="aviso-ico" title="${avisos[i].join("; ")}">⚠</span>` : "") : ""}
+    </tbody>`;
   const nMan = filas.filter(x => x.manual).length;
   const textoRegla = { prom7: `el promedio de los últimos 7 días (${fmt(BASE7.D, 0)} m³/s)`, hoy: `la descarga media de hoy (${fmt(DESC_HOY, 0)} m³/s)`,
     mantener: "el aporte de cada día (la cota se queda donde está)", meta: E.metaD != null ? `${fmt(E.metaD, 0)} m³/s constantes hasta el ${etiquetaDia(PROY.meta.dia)} para llegar a ${fmt(PROY.meta.cota, 2)} msnm; después, mantener cota` : "elige la cota y la fecha" }[PROY.regla];
@@ -3101,8 +3113,10 @@ function renderTablaPrograma(E) {
   if (PROY.regla === "meta" && E.metaD != null && ((LIM.turbinado_max_diario && E.metaD > LIM.turbinado_max_diario) || (LIM.descarga_min_diaria && E.metaD < LIM.descarga_min_diaria))) {
     metaAviso = ` <span class="aviso-celda">La descarga necesaria (${fmt(E.metaD, 0)} m³/s) está fuera del rango observado (${fmt(LIM.descarga_min_diaria, 0)}–${fmt(LIM.turbinado_max_diario, 0)} m³/s).</span>`;
   }
+  const lista = filas.map((x, i) => avisos[i].length ? `<span class="aviso-celda">⚠ ${i === 0 ? "Hoy" : etiquetaDia(x.iso)}: ${avisos[i].join(" · ")}</span>` : "").filter(Boolean);
   document.getElementById("proy-tabla-nota").innerHTML =
-    `Escribe la descarga de cada día (m³/s) y pulsa Enter; ${nMan ? `<b>${nMan} día${nMan === 1 ? "" : "s"} escrito${nMan === 1 ? "" : "s"} a mano</b> (borde de color) y el resto sigue` : "los días sin valor escrito siguen"} ${textoRegla}.${metaAviso} El programa se guarda en este navegador.`;
+    `Escribe la descarga de cada día (m³/s) y pulsa Enter para pasar al día siguiente; ${nMan ? `<b>${nMan} día${nMan === 1 ? "" : "s"} escrito${nMan === 1 ? "" : "s"} a mano</b> (borde de color) y el resto sigue` : "los días sin valor escrito siguen"} ${textoRegla}.${metaAviso} El programa se guarda en este navegador.`
+    + (lista.length ? `<div class="avisos-lista">${lista.join("")}</div>` : "");
 
   document.querySelectorAll("#proy-tabla input").forEach(inp => {
     inp.addEventListener("change", () => {
@@ -3129,7 +3143,7 @@ function renderTablaPrograma(E) {
 // ------------------------------------------------------------------ graficas
 function marcoProy(id, Hgt) {
   const svg = document.getElementById(id);
-  const W = anchoDe(svg, 300, 1100), H = W < 520 ? Hgt * 0.8 : Hgt;
+  const W = anchoDe(svg, 300, 1640), H = W < 520 ? Hgt * 0.8 : Hgt;
   prepararSvg(svg, W, H);
   return { svg, W, H, M: { top: 14, right: W < 520 ? 64 : 86, bottom: 26, left: W < 520 ? 46 : 56 } };
 }
