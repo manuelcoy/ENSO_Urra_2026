@@ -580,11 +580,10 @@
         </div>
         <div class="proy-ctrl" id="proy-limites">
           <span class="proy-ctrl-k">Límites de descarga</span>
-          <label class="proy-chk" for="proy-lim-min">mínima</label>
-          <input type="number" id="proy-lim-min" class="proy-num" step="5" min="0" max="700" inputmode="decimal" style="width:7ch" title="Descarga mínima que usan las reglas automáticas (por defecto, la mínima histórica)"><span class="proy-u">m³/s</span>
+          <span class="proy-chk">mínima: la de la regla de operación del mes y nunca menos de</span>
+          <input type="number" id="proy-lim-min" class="proy-num" step="5" min="0" max="700" inputmode="decimal" style="width:7ch" aria-label="Descarga mínima histórica, en metros cúbicos por segundo" title="Piso para los meses en que la regla de operación permite menos (diciembre a abril). No baja de la mínima histórica."><span class="proy-u">m³/s</span>
           <label class="proy-chk" for="proy-lim-turb">turbinas hasta</label>
           <input type="number" id="proy-lim-turb" class="proy-num" step="5" min="10" max="100" inputmode="decimal" style="width:6ch" title="Carga máxima de las turbinas, en % de la capacidad total"><span class="proy-u">%</span>
-          <label class="proy-chk" title="Exigir además el mínimo mensual de la franja de la regla de operación"><input type="checkbox" id="proy-lim-franja">mínimo de la franja oficial</label>
         </div>
       </div>
 
@@ -2909,7 +2908,7 @@ const corregir = (x, corr) => x == null ? null : Math.min(1.25 * x, Math.max(0.7
 // estado del programa (se guarda en el navegador y viaja en el enlace)
 const CAP_TURB = LIM.capacidad_turbinas || 700;
 const MIN_HIST = LIM.descarga_min_historica || LIM.descarga_min_diaria || 0;
-const LIM_DEFECTO = () => ({ min: MIN_HIST, turb: LIM.pct_turbinas_defecto || 70, franja: false });
+const LIM_DEFECTO = () => ({ min: MIN_HIST, turb: LIM.pct_turbinas_defecto || 70 });
 const PROY = { horizonte: 7, aportes: PRON_VENCIDO ? "tendencia" : "corregido", regla: "prom7", meta: { cota: null, dia: null }, manual: {}, lim: LIM_DEFECTO() };
 let focoPendiente = null;
 
@@ -2953,8 +2952,8 @@ function aporteDia(iso, modo, ancla) {
 function limitesDia(iso) {
   const mes = parseInt(iso.slice(5, 7), 10), f = (LIM.franja_mensual || [])[mes - 1] || [0, 1e9];
   const hiTurb = CAP_TURB * PROY.lim.turb / 100, hi = Math.min(hiTurb, f[1]);
-  const lo = Math.min(hi, PROY.lim.franja ? Math.max(PROY.lim.min, f[0]) : PROY.lim.min);
-  return { lo, hi, porTurb: hiTurb <= f[1], porFranjaMin: PROY.lim.franja && f[0] > PROY.lim.min, fMin: f[0], fMax: f[1], mes };
+  const lo = Math.min(hi, Math.max(PROY.lim.min, f[0])); // el minimo de la regla de operacion es obligatorio
+  return { lo, hi, porTurb: hiTurb <= f[1], porFranjaMin: f[0] >= PROY.lim.min, fMin: f[0], fMax: f[1], mes };
 }
 const limitarD = (v, iso) => { const l = limitesDia(iso); return Math.min(l.hi, Math.max(l.lo, v)); };
 
@@ -3137,8 +3136,7 @@ function renderTablaPrograma(E) {
     const a = [], l = x.lim;
     if (x.D > CAP_TURB + 0.5) a.push(`supera la capacidad de las turbinas (${fmt(CAP_TURB, 0)} m³/s): el exceso sería vertimiento`);
     else if (x.D > l.hi + 0.5) a.push(`por encima del máximo permitido (${fmt(l.hi, 0)} m³/s, ${l.porTurb ? `turbinas al ${fmt(PROY.lim.turb, 0)} %` : `franja de ${MESES_LARGO[l.mes - 1]}`})`);
-    if (x.D < l.lo - 0.5) a.push(`bajo la mínima permitida (${fmt(l.lo, 0)} m³/s${l.porFranjaMin ? `, franja de ${MESES_LARGO[l.mes - 1]}` : ""})`);
-    if (!PROY.lim.franja && x.D < l.fMin - 0.5) a.push(`bajo el mínimo de la franja oficial de ${MESES_LARGO[l.mes - 1]} (${fmt(l.fMin, 0)} m³/s)`);
+    if (x.D < l.lo - 0.5) a.push(l.porFranjaMin ? `bajo la mínima de la regla de operación para ${MESES_LARGO[l.mes - 1]} (${fmt(l.lo, 0)} m³/s)` : `bajo la mínima histórica (${fmt(l.lo, 0)} m³/s)`);
     if (x.vertido > 0.5) a.push(`llega a la máxima: vierte ≈ ${fmt(x.vertido, 0)} m³/s`);
     if (x.deficit) a.push("no alcanza el agua: bajo el mínimo técnico");
     if (x.origen !== "pronostico" && PROY.aportes !== "tendencia") a.push("sin pronóstico, se usa la tendencia");
@@ -3212,10 +3210,11 @@ function renderResumenMeta(E, filas) {
     const ds = auto.map(x => Math.round(x.D)), dMin = Math.min(...ds), dMax = Math.max(...ds);
     como = dMin === dMax
       ? `Descargar <b>${fmt(dMin, 0)} m³/s</b> (${pct(dMin)}) ${auto.length === tramo.length ? `desde ahora hasta ${diaMeta}` : `en los ${auto.length} días sin valor escrito`}.`
-      : `Descargar entre <b>${fmt(dMin, 0)} y ${fmt(dMax, 0)} m³/s</b> (${pct(dMin)} a ${pct(dMax).replace(" de las turbinas", "")}) hasta ${diaMeta}, según los límites de cada día: ${auto.map(x => `${x.d === 0 ? "hoy" : etiquetaDia(x.iso)} ${fmt(x.D, 0)}`).join(" · ")}.`;
+      : `Descargar entre <b>${fmt(dMin, 0)} y ${fmt(dMax, 0)} m³/s</b> (${fmt(Math.min(dMin, CAP_TURB) / CAP_TURB * 100, 0)} % a ${pct(dMax)}) hasta ${diaMeta}, según los límites de cada día: ${auto.map(x => `${x.d === 0 ? "hoy" : etiquetaDia(x.iso)} ${fmt(x.D, 0)}`).join(" · ")}.`;
   }
   const l = fin.lim;
-  const limTxt = `Límites: mínima ${fmt(PROY.lim.min, 0)} m³/s${PROY.lim.franja ? " o la de la franja oficial del mes" : ""}, máxima ${fmt(Math.min(CAP_TURB * PROY.lim.turb / 100, l.fMax), 0)} m³/s (turbinas al ${fmt(PROY.lim.turb, 0)} %${CAP_TURB * PROY.lim.turb / 100 > l.fMax ? `, recortada por la franja de ${MESES_LARGO[l.mes - 1]}` : ""}).`;
+  const porMes = [...new Map(tramo.map(x => [x.lim.mes, x.lim])).values()];
+  const limTxt = `Descarga permitida: ${porMes.map(m => `${MESES_LARGO[m.mes - 1]} ${fmt(m.lo, 0)}–${fmt(m.hi, 0)} m³/s (mínima ${m.porFranjaMin ? "de la regla de operación" : "histórica"}, máxima ${m.porTurb ? `turbinas al ${fmt(PROY.lim.turb, 0)} %` : "de la regla de operación"})`).join(" · ")}.`;
   let estado = "";
   if (M.estado === "no_sube") estado = `<b>No se alcanza:</b> aun descargando la mínima permitida, el embalse llega a <b>${fmt(M.cotaFinal, 2)} msnm</b> ${diaMeta} (faltan ${fmt(PROY.meta.cota - M.cotaFinal, 2)} m). Prueba una fecha más lejana o una cota más baja.`;
   else if (M.estado === "no_baja") estado = `<b>No se alcanza:</b> aun descargando la máxima permitida, el embalse queda en <b>${fmt(M.cotaFinal, 2)} msnm</b> ${diaMeta} (${fmt(M.cotaFinal - PROY.meta.cota, 2)} m por encima). Sube el % de las turbinas o elige una fecha más lejana.`;
@@ -3407,7 +3406,7 @@ function renderPieProy(E) {
     <div class="caja-k">Cómo se calcula</div>
     <div class="caja-s">Parte del último dato (${U0.fecha_hora.slice(0, 16)}h: ${fmt(U0.nivel, 2)} msnm, ${fmt(U0.volumen_util_hm3, 0)} hm³). Cada día suma aporte − descarga en hm³ y lo pasa a cota con la curva cota-volumen vigente; al llegar a ${fmt(DATA.niveles_referencia.NMAX_OPER, 2)} msnm el exceso se vierte.</div>
     <div class="caja-s">Para lo que queda de hoy usa el pronóstico hora a hora, ajustado a lo que ha entrado en las últimas horas. Los días siguientes usan el pronóstico diario${PROY.aportes === "corregido" ? " con el sesgo corregido" : ""}. </div>
-    <div class="caja-s">Las reglas automáticas nunca bajan de la mínima elegida (por defecto ${fmt(MIN_HIST, 0)} m³/s, la mínima histórica de los últimos 3 años) ni pasan de las turbinas al ${fmt(PROY.lim.turb, 0)} % (${fmt(CAP_TURB * PROY.lim.turb / 100, 0)} de ${fmt(CAP_TURB, 0)} m³/s), y respetan el máximo de la franja mensual de la regla de operación${PROY.lim.franja ? " y también su mínimo" : ""}. Lo escrito a mano se respeta, con aviso si se sale de esos límites.</div>
+    <div class="caja-s">Las reglas automáticas respetan la franja mensual de la regla de operación (por ejemplo, noviembre ${fmt(LIM.franja_mensual[10][0], 0)}–${fmt(LIM.franja_mensual[10][1], 0)} m³/s), nunca bajan de la mínima histórica (${fmt(PROY.lim.min, 0)} m³/s, para los meses en que la franja permite menos) ni pasan de las turbinas al ${fmt(PROY.lim.turb, 0)} % (${fmt(CAP_TURB * PROY.lim.turb / 100, 0)} de ${fmt(CAP_TURB, 0)} m³/s). Lo escrito a mano se respeta, con aviso si se sale de esos límites.</div>
     <div class="caja-s">No reemplaza el despacho ni las reglas de operación: es una herramienta para comparar programas.</div>`;
 }
 
@@ -3424,8 +3423,8 @@ function aplicarPrograma(o) {
   if (o.meta && typeof o.meta === "object") PROY.meta = { cota: Number.isFinite(+o.meta.cota) ? +o.meta.cota : null, dia: typeof o.meta.dia === "string" ? o.meta.dia : null };
   if (o.lim && typeof o.lim === "object") {
     const d = LIM_DEFECTO();
-    PROY.lim = { min: Number.isFinite(+o.lim.min) ? Math.max(0, Math.min(700, +o.lim.min)) : d.min,
-                 turb: Number.isFinite(+o.lim.turb) ? Math.max(10, Math.min(100, +o.lim.turb)) : d.turb, franja: !!o.lim.franja };
+    PROY.lim = { min: Number.isFinite(+o.lim.min) ? Math.max(MIN_HIST, Math.min(700, +o.lim.min)) : d.min,
+                 turb: Number.isFinite(+o.lim.turb) ? Math.max(10, Math.min(100, +o.lim.turb)) : d.turb };
   }
   PROY.manual = {};
   Object.entries(o.manual || {}).forEach(([f, v]) => { if (/^\d{4}-\d{2}-\d{2}$/.test(f) && f >= HOY && Number.isFinite(+v)) PROY.manual[f] = Math.max(0, Math.min(3000, +v)); });
@@ -3450,7 +3449,7 @@ function descargarCsv(E) {
     "volumen_util_cierre_hm3", "cota_cierre_msnm", "cota_p10_msnm", "cota_p90_msnm", "nivel_alerta", "descarga_min_permitida_m3s", "descarga_max_permitida_m3s", "turbinas_pct"]];
   E.dias.slice(0, PROY.horizonte).forEach(x => filas.push([x.iso, num(x.q, 1), num(x.p10, 1), num(x.p90, 1), x.origen, num(x.D, 1), x.manual ? "si" : "no",
     num(x.q - x.D, 1), num(x.vertido, 1), num(x.vu, 1), num(x.cota, 2), num(x.cotaLo, 2), num(x.cotaHi, 2), LABEL_SEGUIMIENTO[x.nivel], num(x.lim.lo, 0), num(x.lim.hi, 0), num(Math.min(x.D, CAP_TURB) / CAP_TURB * 100, 0)]));
-  const meta = `# Programa de descarga Urra -- generado ${new Date().toISOString().slice(0, 16)} desde v3.html; dato de partida ${U0.fecha_hora}, ${fmt(U0.nivel, 2)} msnm; aportes: ${PROY.aportes}${PRON ? `, corrida ${PRON.meta.fecha_corrida}` : ""}; regla: ${PROY.regla}${PROY.regla === "meta" ? ` (${PROY.meta.cota} msnm el ${PROY.meta.dia})` : ""}; limites: minima ${PROY.lim.min} m3/s, turbinas ${PROY.lim.turb} %${PROY.lim.franja ? ", minimo de la franja" : ""}`;
+  const meta = `# Programa de descarga Urra -- generado ${new Date().toISOString().slice(0, 16)} desde v3.html; dato de partida ${U0.fecha_hora}, ${fmt(U0.nivel, 2)} msnm; aportes: ${PROY.aportes}${PRON ? `, corrida ${PRON.meta.fecha_corrida}` : ""}; regla: ${PROY.regla}${PROY.regla === "meta" ? ` (${PROY.meta.cota} msnm el ${PROY.meta.dia})` : ""}; limites: minima ${PROY.lim.min} m3/s, turbinas ${PROY.lim.turb} %, franja mensual de la regla de operacion`;
   const csv = "﻿" + meta + "\n" + filas.map(f => f.join(";")).join("\n") + "\n";
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
@@ -3485,7 +3484,6 @@ function sincronizarControles() {
   document.getElementById("proy-meta-cota").value = PROY.meta.cota;
   document.getElementById("proy-lim-min").value = PROY.lim.min;
   document.getElementById("proy-lim-turb").value = PROY.lim.turb;
-  document.getElementById("proy-lim-franja").checked = PROY.lim.franja;
 }
 function initProyeccion() {
   cargarPrograma();
@@ -3501,14 +3499,13 @@ function initProyeccion() {
   document.getElementById("proy-meta-dia").addEventListener("change", e => { PROY.meta.dia = e.target.value; guardarPrograma(); renderProyeccion(); });
   const numDe = el => parseFloat(String(el.value).replace(",", "."));
   document.getElementById("proy-lim-min").addEventListener("change", e => {
-    const v = numDe(e.target); PROY.lim.min = Number.isFinite(v) ? Math.max(0, Math.min(700, v)) : MIN_HIST;
+    const v = numDe(e.target); PROY.lim.min = Number.isFinite(v) ? Math.max(MIN_HIST, Math.min(700, v)) : MIN_HIST;
     sincronizarControles(); guardarPrograma(); renderProyeccion();
   });
   document.getElementById("proy-lim-turb").addEventListener("change", e => {
     const v = numDe(e.target); PROY.lim.turb = Number.isFinite(v) ? Math.max(10, Math.min(100, v)) : LIM_DEFECTO().turb;
     sincronizarControles(); guardarPrograma(); renderProyeccion();
   });
-  document.getElementById("proy-lim-franja").addEventListener("change", e => { PROY.lim.franja = e.target.checked; guardarPrograma(); renderProyeccion(); });
   document.getElementById("proy-limpiar").addEventListener("click", () => { PROY.manual = {}; PROY.lim = LIM_DEFECTO(); sincronizarControles(); guardarPrograma(); renderProyeccion(); });
   document.getElementById("proy-csv").addEventListener("click", () => descargarCsv(ultimoEscenario));
   document.getElementById("proy-enlace").addEventListener("click", async e => {
