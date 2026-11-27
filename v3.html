@@ -2969,6 +2969,8 @@ function limitesDia(iso) {
 }
 // promedio de las 24 h de hoy si lo que queda del dia descarga D
 const promedioHoy = D => (DESC_HOY * H0 + D * (24 - H0)) / 24;
+// rango de la regla de operacion para mostrar (hoy: el del promedio del dia, no el de las horas que faltan)
+const reglaDia = l => l.dia || l;
 const limitarD = (v, iso) => { const l = limitesDia(iso); return Math.min(l.hi, Math.max(l.lo, v)); };
 
 // regla "llegar a una cota": la descarga mas pareja posible (un mismo valor, recortado a los limites
@@ -3171,7 +3173,7 @@ function renderTablaPrograma(E) {
     <tbody>
       ${fila(`Aporte m³/s<span class="r">P10–P90</span>`, x => `${fmt(x.q, 0)}${x.p10 != null ? `<span class="r">${fmt(x.p10, 0)}–${fmt(x.p90, 0)}</span>` : ""}`)}
       ${fila(`Descarga m³/s<span class="r">${M ? "calculada para la meta · " : ""}permitida mín–máx</span>`, (x, i) => `<input type="number" inputmode="decimal" min="0" max="3000" step="5" data-fecha="${x.iso}" data-i="${i}" value="${Math.round(x.D)}"
-        class="${x.manual ? "manual" : x.metaCalc ? "calc" : ""}" aria-label="Descarga programada para ${etiquetaDia(x.iso)}, en metros cúbicos por segundo"><span class="r">${fmt(x.lim.lo, 0)}–${fmt(x.lim.hi, 0)}</span>`, "fila-descarga")}
+        class="${x.manual ? "manual" : x.metaCalc ? "calc" : ""}" aria-label="Descarga programada para ${etiquetaDia(x.iso)}, en metros cúbicos por segundo"><span class="r">${fmt(reglaDia(x.lim).lo, 0)}–${fmt(reglaDia(x.lim).hi, 0)}</span>`, "fila-descarga")}
       ${fila(`Turbinas<span class="r">% de ${fmt(CAP_TURB, 0)} m³/s</span>`, x => `${fmt(Math.min(x.D, CAP_TURB) / CAP_TURB * 100, 0)} %`)}
       ${fila("Balance m³/s", x => `<span style="color:${x.q - x.D >= 0 ? "var(--bal-up)" : "var(--bal-down)"}">${signo(x.q - x.D, 0)}</span>`)}
       ${fila(`Cota al cierre<span class="r">rango probable</span>`, x => `<b>${fmt(x.cota, 2)}</b><span class="r">${fmtCotaRango(x).replace(" – ", "–")}</span>`)}
@@ -3363,7 +3365,7 @@ function renderGraficaCaudalProy(E) {
   // limites permitidos de cada dia (escalones)
   ["hi", "lo"].forEach(k => {
     const xs = [], ys = [];
-    fut.forEach(f => { const t0d = f.d === 0 ? T0 : fechaBogota(f.iso).getTime(); xs.push(x(t0d), x(finDia(f.iso))); ys.push(y(f.lim[k]), y(f.lim[k])); });
+    fut.forEach(f => { const t0d = f.d === 0 ? T0 : fechaBogota(f.iso).getTime(); xs.push(x(t0d), x(finDia(f.iso))); ys.push(y(reglaDia(f.lim)[k]), y(reglaDia(f.lim)[k])); });
     svg.appendChild(svgEl("path", { d: pathLinea(xs, ys), fill: "none", stroke: "var(--ink)", "stroke-width": 1.2, "stroke-dasharray": "3 3", opacity: 0.55 }));
   });
   // aporte: observado (linea) y pronostico (banda + linea discontinua)
@@ -3382,7 +3384,8 @@ function renderGraficaCaudalProy(E) {
     : `<b>${etiquetaDia(p.f.iso)} · ${p.f.origen === "pronostico" ? "pronóstico" : "tendencia"}</b>` + fila("Aporte usado", `${fmt(p.f.q, 0)} m³/s`)
       + (p.f.p10 != null ? fila("P10 – P90", `${fmt(p.f.p10, 0)} – ${fmt(p.f.p90, 0)}`) : "") + (p.f.crudo != null && PROY.aportes === "corregido" ? fila("Sin corregir", `${fmt(p.f.crudo, 0)} m³/s`) : "")
       + fila(p.f.manual ? "Descarga programada" : p.f.metaCalc ? "Descarga para la meta" : "Descarga (regla base)", `${fmt(p.f.D, 0)} m³/s`)
-      + fila("Permitida", `${fmt(p.f.lim.lo, 0)} – ${fmt(p.f.lim.hi, 0)} m³/s`) + fila("Balance", `${signo(p.f.q - p.f.D, 0)} m³/s`));
+      + fila("Regla de operación", `${fmt(reglaDia(p.f.lim).lo, 0)} – ${fmt(reglaDia(p.f.lim).hi, 0)} m³/s`)
+      + (p.f.lim.dia ? fila("Promedio del día", `${fmt(promedioHoy(p.f.D), 0)} m³/s`) : "") + fila("Balance", `${signo(p.f.q - p.f.D, 0)} m³/s`));
   document.getElementById("proy-legend-caudal").innerHTML = `
     <span><i style="width:16px;height:0;border:none;border-top:2.2px solid var(--accent);"></i>Aporte observado</span>
     <span><i style="width:16px;height:0;border:none;border-top:2.2px dashed var(--accent);"></i>Aporte ${PROY.aportes === "tendencia" ? "por tendencia" : PROY.aportes === "corregido" ? "pronosticado, corregido" : "pronosticado"}</span>
@@ -3469,7 +3472,7 @@ function descargarCsv(E) {
   const filas = [["fecha", "aporte_m3s", "aporte_p10_m3s", "aporte_p90_m3s", "origen_aporte", "descarga_m3s", "descarga_escrita_a_mano", "balance_m3s", "vertimiento_m3s",
     "volumen_util_cierre_hm3", "cota_cierre_msnm", "cota_p10_msnm", "cota_p90_msnm", "nivel_alerta", "descarga_min_permitida_m3s", "descarga_max_permitida_m3s", "turbinas_pct"]];
   E.dias.slice(0, PROY.horizonte).forEach(x => filas.push([x.iso, num(x.q, 1), num(x.p10, 1), num(x.p90, 1), x.origen, num(x.D, 1), x.manual ? "si" : "no",
-    num(x.q - x.D, 1), num(x.vertido, 1), num(x.vu, 1), num(x.cota, 2), num(x.cotaLo, 2), num(x.cotaHi, 2), LABEL_SEGUIMIENTO[x.nivel], num(x.lim.lo, 0), num(x.lim.hi, 0), num(Math.min(x.D, CAP_TURB) / CAP_TURB * 100, 0)]));
+    num(x.q - x.D, 1), num(x.vertido, 1), num(x.vu, 1), num(x.cota, 2), num(x.cotaLo, 2), num(x.cotaHi, 2), LABEL_SEGUIMIENTO[x.nivel], num(reglaDia(x.lim).lo, 0), num(reglaDia(x.lim).hi, 0), num(Math.min(x.D, CAP_TURB) / CAP_TURB * 100, 0)]));
   const meta = `# Programa de descarga Urra -- generado ${new Date().toISOString().slice(0, 16)} desde v3.html; dato de partida ${U0.fecha_hora}, ${fmt(U0.nivel, 2)} msnm; aportes: ${PROY.aportes}${PRON ? `, corrida ${PRON.meta.fecha_corrida}` : ""}; regla: ${PROY.regla}${PROY.regla === "meta" ? ` (${PROY.meta.cota} msnm el ${PROY.meta.dia})` : ""}; limites: minima ${PROY.lim.min} m3/s, turbinas ${PROY.lim.turb} %, franja mensual de la regla de operacion`;
   const csv = "﻿" + meta + "\n" + filas.map(f => f.join(";")).join("\n") + "\n";
   const a = document.createElement("a");
