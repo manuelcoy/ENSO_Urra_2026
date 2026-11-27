@@ -495,6 +495,14 @@
   table.programa.compacta input { width: 5.8ch; }
   table.programa.compacta .lbl-l { display: none; }
   table.programa.compacta .lbl-c { display: inline; }
+  table.programa.mes { width: auto; }
+  table.programa.mes thead th:not(.esq), table.programa.mes td { padding: 5px 4px; min-width: 70px; }
+  table.programa.mes input { width: 6.2ch; }
+  table.programa input[type=number] { -moz-appearance: textfield; }
+  table.programa input::-webkit-outer-spin-button, table.programa input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  table.programa .est { color: var(--muted); font-style: italic; }
+  table.programa thead th.ini-est { box-shadow: inset 2px 0 0 var(--line-strong); }
+  table.programa td.ini-est { box-shadow: inset 2px 0 0 var(--line-strong); }
   @media (max-width: 700px) {
     table.programa { font-size: 12px; }
     table.programa th, table.programa td { padding: 5px 4px; }
@@ -553,6 +561,7 @@
           <div class="segmented" id="proy-horizonte">
             <button data-h="7" class="active">7 días</button>
             <button data-h="15">15 días</button>
+            <button data-h="mes" id="proy-h-mes" title="Lo que falta del mes y todo el mes siguiente; pasado el pronóstico, los aportes siguen la forma estacional">Hasta fin de mes siguiente</button>
           </div>
         </div>
         <div class="proy-ctrl">
@@ -2909,7 +2918,12 @@ const corregir = (x, corr) => x == null ? null : Math.min(1.25 * x, Math.max(0.7
 const CAP_TURB = LIM.capacidad_turbinas || 700;
 const MIN_HIST = LIM.descarga_min_historica || LIM.descarga_min_diaria || 0;
 const LIM_DEFECTO = () => ({ min: MIN_HIST, turb: LIM.pct_turbinas_defecto || 70 });
-const PROY = { horizonte: 7, aportes: PRON_VENCIDO ? "tendencia" : "corregido", regla: "prom7", meta: { cota: null, dia: null }, manual: {}, lim: LIM_DEFECTO() };
+// horizonte "mes": lo que falta del mes actual y todo el mes siguiente
+const MES_HOY = parseInt(HOY.slice(5, 7), 10), ANIO_HOY = parseInt(HOY.slice(0, 4), 10);
+const FIN_MES_SIG = new Date(Date.UTC(ANIO_HOY, MES_HOY + 1, 0)).toISOString().slice(0, 10);
+const H_MES = difDias(FIN_MES_SIG, HOY) + 1;
+const NOMBRE_MES_SIG = MESES_LARGO[MES_HOY % 12];
+const PROY = { hModo: "7", horizonte: 7, aportes: PRON_VENCIDO ? "tendencia" : "corregido", regla: "prom7", meta: { cota: null, dia: null }, manual: {}, lim: LIM_DEFECTO() };
 let focoPendiente = null, avisoSubida = "";
 
 // aporte medio de lo que queda de HOY
@@ -3081,6 +3095,16 @@ function conRango(E, modo) {
       } else { x.vuLo = x.vuHi = null; }
       if (x.vuLo != null) { x.vuLo = Math.max(0, Math.min(VU_MAX, Math.min(x.vuLo, x.vu))); x.vuHi = Math.max(0, Math.min(VU_MAX, Math.max(x.vuHi, x.vu))); }
     });
+    // pasado el pronostico (aportes con la forma estacional) el rango se sigue abriendo como la raiz del tiempo
+    let iU = -1; E.dias.forEach((x, i) => { if (x.vuLo != null && x.origen === "pronostico") iU = i; });
+    if (iU >= 0) {
+      const u = E.dias[iU], dLo = u.vu - u.vuLo, dHi = u.vuHi - u.vu;
+      E.dias.forEach((x, i) => {
+        if (i <= iU || x.origen === "pronostico") return;
+        const k = Math.sqrt((i + 1) / (iU + 1));
+        x.vuLo = Math.max(0, x.vu - dLo * k); x.vuHi = Math.min(VU_MAX, x.vu + dHi * k); x.fuenteRango = "error del pronóstico, extendido";
+      });
+    }
   }
   E.dias.forEach(x => { x.cotaLo = x.vuLo != null ? cotaDeVu(x.vuLo) : null; x.cotaHi = x.vuHi != null ? cotaDeVu(x.vuHi) : null; });
   return E;
@@ -3139,7 +3163,7 @@ function renderKpisProy(E) {
     caja(`Cierre de hoy · ${etiquetaDia(HOY)} 24:00`, hoy,
       `<div class="caja-alt">Faltan ${hoy.horas || Math.round(hoy.frac * 24)} h: aporte ≈ <b>${fmt(q.q, 0)} m³/s</b>${q.ajuste && Math.abs(q.ajuste - 1) > 0.02 ? ` (ajustado ${signo((q.ajuste - 1) * 100, 0)}% a lo observado)` : ""} · descarga <b>${fmt(q.D, 0)} m³/s</b>${q.manual ? " (programada)" : ""}${q.lim && q.lim.dia ? ` → promedio del día ${fmt(promedioHoy(q.D), 0)} m³/s` : ""}</div>`)
     + caja(`Mañana · ${etiquetaDia(man.iso)}`, man)
-    + caja(`A ${H} días · ${etiquetaDia(finH.iso)}`, finH,
+    + caja(PROY.hModo === "mes" ? `Cierre de ${NOMBRE_MES_SIG} · ${etiquetaDia(finH.iso)}` : `A ${H} días · ${etiquetaDia(finH.iso)}`, finH,
       finH.origen !== "pronostico" ? `<div class="caja-alt">Parte de este horizonte no tiene pronóstico: se completa con la tendencia estacional.</div>` : "")
     + cajaNivel;
 }
@@ -3155,11 +3179,12 @@ function renderTablaPrograma(E) {
     if (x.D < l.lo - 0.5) a.push(l.porFranjaMin ? `bajo la mínima de la regla de operación para ${MESES_LARGO[l.mes - 1]} (${fmt(l.lo, 0)} m³/s)` : `bajo la mínima histórica (${fmt(l.lo, 0)} m³/s)`);
     if (x.vertido > 0.5) a.push(`llega a la máxima: vierte ≈ ${fmt(x.vertido, 0)} m³/s`);
     if (x.deficit) a.push("no alcanza el agua: bajo el mínimo técnico");
-    if (x.origen !== "pronostico" && PROY.aportes !== "tendencia") a.push("sin pronóstico, se usa la tendencia");
     return a;
   };
   const avisos = filas.map(avisosDe);
-  const clase = (x, i) => `${i === 0 ? "hoy" : ""} ${x.origen !== "pronostico" && PROY.aportes !== "tendencia" ? "sin-pron" : ""}`;
+  const estac = x => x.origen !== "pronostico" && PROY.aportes !== "tendencia";
+  const iniEst = filas.findIndex(estac);
+  const clase = (x, i) => `${i === 0 ? "hoy" : ""} ${estac(x) ? "sin-pron" : ""} ${i === iniEst && i > 0 ? "ini-est" : ""}`;
   const fila = (rotulo, fn, cls = "") => `<tr class="${cls}"><th scope="row">${rotulo}</th>${filas.map((x, i) => `<td class="${clase(x, i)}">${fn(x, i)}</td>`).join("")}</tr>`;
   const cab = filas.map((x, i) => {
     const [dow, dm] = etiquetaDia(x.iso).split(" ");
@@ -3167,11 +3192,11 @@ function renderTablaPrograma(E) {
     return `<th scope="col" class="${clase(x, i)}${esMeta ? " meta-dia" : ""}">${esMeta ? `<span class="meta-k">meta</span>` : ""}${i === 0 ? `Hoy<span class="r">resto, ${x.horas || Math.round(x.frac * 24)} h</span>` : `${dow}<span class="r">${dm}</span>`}</th>`;
   }).join("");
   const tabla = document.getElementById("proy-tabla");
-  tabla.className = "programa" + (H > 10 ? " compacta" : "");
+  tabla.className = "programa" + (H > 10 ? " compacta" : "") + (H > 20 ? " mes" : "");
   tabla.innerHTML = `
     <thead><tr><th scope="col" class="esq"></th>${cab}</tr></thead>
     <tbody>
-      ${fila(`Aporte m³/s<span class="r">P10–P90</span>`, x => `${fmt(x.q, 0)}${x.p10 != null ? `<span class="r">${fmt(x.p10, 0)}–${fmt(x.p90, 0)}</span>` : ""}`)}
+      ${fila(`Aporte m³/s<span class="r">P10–P90${iniEst >= 0 ? " · estacional" : ""}</span>`, x => `${fmt(x.q, 0)}${x.p10 != null ? `<span class="r">${fmt(x.p10, 0)}–${fmt(x.p90, 0)}</span>` : estac(x) ? `<span class="r est">estac.</span>` : ""}`)}
       ${fila(`Descarga m³/s<span class="r">${M ? "calculada para la meta · " : ""}permitida mín–máx</span>`, (x, i) => `<input type="number" inputmode="decimal" min="0" max="3000" step="5" data-fecha="${x.iso}" data-i="${i}" value="${Math.round(x.D)}"
         class="${x.manual ? "manual" : x.metaCalc ? "calc" : ""}" aria-label="Descarga programada para ${etiquetaDia(x.iso)}, en metros cúbicos por segundo"><span class="r">${fmt(reglaDia(x.lim).lo, 0)}–${fmt(reglaDia(x.lim).hi, 0)}</span>`, "fila-descarga")}
       ${fila(`Turbinas<span class="r">% de ${fmt(CAP_TURB, 0)} m³/s</span>`, x => `${fmt(Math.min(x.D, CAP_TURB) / CAP_TURB * 100, 0)} %`)}
@@ -3188,6 +3213,7 @@ function renderTablaPrograma(E) {
   const lista = filas.map((x, i) => avisos[i].length ? `<span class="aviso-celda">⚠ ${i === 0 ? "Hoy" : etiquetaDia(x.iso)}: ${avisos[i].join(" · ")}</span>` : "").filter(Boolean);
   document.getElementById("proy-tabla-nota").innerHTML =
     `Escribe la descarga de cada día (m³/s) y pulsa Enter para pasar al día siguiente; ${nMan ? `<b>${nMan} día${nMan === 1 ? "" : "s"} escrito${nMan === 1 ? "" : "s"} a mano</b> (borde de color) y el resto sigue` : "los días sin valor escrito siguen"} ${textoRegla}. El programa se guarda en este navegador.`
+    + (iniEst >= 0 ? `<div class="caja-s">Desde el <b>${etiquetaDia(filas[iniEst].iso)}</b> no hay pronóstico: el aporte sigue la forma estacional ${NINO_ACTIVO ? "de los años El Niño" : "del año"} desde el promedio de los últimos días pronosticados (columnas en gris, aporte "estac.").</div>` : "")
     + (filas[0].lim.dia ? `<div class="caja-s">Hoy van ${filas[0].lim.dia.hObs} h con <b>${fmt(DESC_HOY, 0)} m³/s</b> de promedio. Para que el promedio del día quede en la regla (${fmt(filas[0].lim.dia.lo, 0)}–${fmt(filas[0].lim.dia.hi, 0)} m³/s), las ${filas[0].lim.dia.hRest} h que faltan deben descargar entre <b>${fmt(filas[0].lim.lo, 0)} y ${fmt(filas[0].lim.hi, 0)} m³/s</b>; con ${fmt(filas[0].D, 0)} m³/s el día cierra en <b>${fmt(promedioHoy(filas[0].D), 0)} m³/s</b> de promedio.</div>` : "")
     + (avisoSubida ? `<div class="aviso-celda">${avisoSubida}</div>` : "")
     + (lista.length ? `<div class="avisos-lista">${lista.join("")}</div>` : "");
@@ -3266,6 +3292,15 @@ function lineaHoy(c, x) {
   const th = svgEl("text", { x: x(T0) + 5, y: c.M.top + 10, "font-size": "10", class: "mono", "font-weight": 700 });
   th.textContent = "ahora"; th.setAttribute("fill", "var(--muted)"); c.svg.appendChild(th);
 }
+function lineaFinPronostico(c, x, fut) {
+  if (PROY.aportes === "tendencia") return;
+  const f = fut.find(z => z.d > 0 && z.origen !== "pronostico");
+  if (!f) return;
+  const t = fechaBogota(f.iso).getTime();
+  c.svg.appendChild(svgEl("line", { x1: x(t), x2: x(t), y1: c.M.top, y2: c.H - c.M.bottom, stroke: "var(--ink)", "stroke-dasharray": "2 3", opacity: 0.45 }));
+  const tx = svgEl("text", { x: x(t) + 5, y: c.M.top + 10, "font-size": "10", class: "mono", "font-weight": 700 });
+  tx.textContent = c.W < 520 ? "estacional →" : "fin del pronóstico · aporte estacional →"; tx.setAttribute("fill", "var(--muted)"); c.svg.appendChild(tx);
+}
 function hoverDias(c, x, tIni, tFin, puntos, html) {
   const vline = svgEl("line", { y1: c.M.top, y2: c.H - c.M.bottom, stroke: "var(--line-strong)", opacity: 0 });
   c.svg.appendChild(vline);
@@ -3320,6 +3355,7 @@ function renderGraficaCotaProy(E) {
     etiquetasDerecha(svg, [{ y: y(ref.NMAX_OPER), texto: `máx ${fmt(ref.NMAX_OPER, 1)}`, color: "var(--muted)" }], W - M.right + 6);
   }
   lineaHoy(c, x);
+  lineaFinPronostico(c, x, fut);
   const conR = pts.filter(p => p.lo != null);
   if (conR.length) {
     const xsR = [x(T0), ...conR.map(p => x(p.t))];
@@ -3355,6 +3391,7 @@ function renderGraficaCaudalProy(E) {
   ejeY(svg, esc, y, M.left, W - M.right, 10.5);
   ejeXFechas(c, x, tIni, tFinG);
   lineaHoy(c, x);
+  lineaFinPronostico(c, x, fut);
   // descarga: barras por dia (observada gris, programada en color)
   const anchoDia = x(tIni + DIA_MS) - x(tIni), bw = Math.max(2, anchoDia - 3);
   pasado.forEach(d => svg.appendChild(svgEl("rect", { x: x(fechaBogota(d.fecha).getTime()) + 1.5, width: bw, y: y(d.aguas_abajo), height: y(0) - y(d.aguas_abajo), fill: "var(--neutral-phase)", opacity: 0.45, rx: 2 })));
@@ -3437,11 +3474,12 @@ function renderPieProy(E) {
 // ------------------------------------------------------------------ guardar, compartir, exportar
 function programaSerializable() {
   const manual = Object.fromEntries(Object.entries(PROY.manual).filter(([f]) => f >= HOY));
-  return { v: 1, horizonte: PROY.horizonte, aportes: PROY.aportes, regla: PROY.regla, meta: PROY.meta, lim: PROY.lim, manual };
+  return { v: 1, horizonte: PROY.hModo === "mes" ? "mes" : PROY.horizonte, aportes: PROY.aportes, regla: PROY.regla, meta: PROY.meta, lim: PROY.lim, manual };
 }
 function aplicarPrograma(o) {
   if (!o || typeof o !== "object") return;
-  if ([7, 15].includes(o.horizonte)) PROY.horizonte = o.horizonte;
+  if ([7, 15].includes(o.horizonte)) { PROY.horizonte = o.horizonte; PROY.hModo = String(o.horizonte); }
+  else if (o.horizonte === "mes") { PROY.horizonte = H_MES; PROY.hModo = "mes"; }
   if (["corregido", "crudo", "tendencia"].includes(o.aportes) && (o.aportes === "tendencia" || PRON)) PROY.aportes = o.aportes;
   if (["prom7", "hoy", "mantener", "meta"].includes(o.regla)) PROY.regla = o.regla;
   if (o.meta && typeof o.meta === "object") PROY.meta = { cota: Number.isFinite(+o.meta.cota) ? +o.meta.cota : null, dia: typeof o.meta.dia === "string" ? o.meta.dia : null };
@@ -3494,7 +3532,7 @@ function renderProyeccion() {
 }
 function sincronizarControles() {
   const marcar = (sel, attr, val) => document.querySelectorAll(`${sel} button`).forEach(b => b.classList.toggle("active", b.dataset[attr] === String(val)));
-  marcar("#proy-horizonte", "h", PROY.horizonte);
+  marcar("#proy-horizonte", "h", PROY.hModo);
   marcar("#proy-aportes", "a", PROY.aportes);
   marcar("#proy-regla", "r", PROY.regla);
   document.querySelectorAll("#proy-aportes button").forEach(b => { if (b.dataset.a !== "tendencia") b.disabled = !PRON; });
@@ -3512,7 +3550,8 @@ function sincronizarControles() {
 function initProyeccion() {
   cargarPrograma();
   const enlazar = (sel, fn) => document.querySelectorAll(`${sel} button`).forEach(b => b.addEventListener("click", () => { fn(b); sincronizarControles(); guardarPrograma(); renderProyeccion(); }));
-  enlazar("#proy-horizonte", b => { PROY.horizonte = parseInt(b.dataset.h, 10); });
+  enlazar("#proy-horizonte", b => { PROY.hModo = b.dataset.h; PROY.horizonte = b.dataset.h === "mes" ? H_MES : parseInt(b.dataset.h, 10); });
+  document.getElementById("proy-h-mes").textContent = `Hasta fin de ${NOMBRE_MES_SIG} (${H_MES} días)`;
   enlazar("#proy-aportes", b => { PROY.aportes = b.dataset.a; });
   enlazar("#proy-regla", b => { PROY.regla = b.dataset.r; });
   document.getElementById("proy-meta-cota").addEventListener("change", e => {
