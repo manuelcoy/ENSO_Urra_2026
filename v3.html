@@ -2830,7 +2830,7 @@ const U0 = DATA.ultimo_dato_horario;
 const T0 = fechaBogota(U0.fecha_hora).getTime();
 const HOY = U0.fecha_hora.slice(0, 10);
 const H0 = parseInt(U0.fecha_hora.slice(11, 13), 10);
-const CLAVE_LS = "urraV3Programa";
+const CLAVE_LS = "urraV3Programa_r2"; // r2: minimo de la regla de operacion obligatorio
 
 function interp1(x, xs, ys) {
   const n = xs.length;
@@ -2910,7 +2910,7 @@ const CAP_TURB = LIM.capacidad_turbinas || 700;
 const MIN_HIST = LIM.descarga_min_historica || LIM.descarga_min_diaria || 0;
 const LIM_DEFECTO = () => ({ min: MIN_HIST, turb: LIM.pct_turbinas_defecto || 70 });
 const PROY = { horizonte: 7, aportes: PRON_VENCIDO ? "tendencia" : "corregido", regla: "prom7", meta: { cota: null, dia: null }, manual: {}, lim: LIM_DEFECTO() };
-let focoPendiente = null;
+let focoPendiente = null, avisoSubida = "";
 
 // aporte medio de lo que queda de HOY
 function aporteRestoHoy(modo) {
@@ -2953,8 +2953,22 @@ function limitesDia(iso) {
   const mes = parseInt(iso.slice(5, 7), 10), f = (LIM.franja_mensual || [])[mes - 1] || [0, 1e9];
   const hiTurb = CAP_TURB * PROY.lim.turb / 100, hi = Math.min(hiTurb, f[1]);
   const lo = Math.min(hi, Math.max(PROY.lim.min, f[0])); // el minimo de la regla de operacion es obligatorio
-  return { lo, hi, porTurb: hiTurb <= f[1], porFranjaMin: f[0] >= PROY.lim.min, fMin: f[0], fMax: f[1], mes };
+  const l = { lo, hi, porTurb: hiTurb <= f[1], porFranjaMin: f[0] >= PROY.lim.min, fMin: f[0], fMax: f[1], mes };
+  // hoy: la regla es sobre el PROMEDIO DEL DIA. Lo que queda del dia debe compensar lo ya descargado
+  // para que el promedio de las 24 h quede entre el minimo y el maximo.
+  if (iso === HOY && HORAS_HOY.length) {
+    const hObs = H0, hRest = 24 - H0;
+    if (hRest > 0) {
+      const rest = prom => (prom * 24 - DESC_HOY * hObs) / hRest;
+      l.dia = { lo, hi, hObs, hRest, desc: DESC_HOY };
+      l.lo = Math.min(CAP_TURB, Math.max(PROY.lim.min, rest(lo)));
+      l.hi = Math.max(l.lo, Math.min(CAP_TURB, rest(hi)));
+    }
+  }
+  return l;
 }
+// promedio de las 24 h de hoy si lo que queda del dia descarga D
+const promedioHoy = D => (DESC_HOY * H0 + D * (24 - H0)) / 24;
 const limitarD = (v, iso) => { const l = limitesDia(iso); return Math.min(l.hi, Math.max(l.lo, v)); };
 
 // regla "llegar a una cota": la descarga mas pareja posible (un mismo valor, recortado a los limites
@@ -3121,7 +3135,7 @@ function renderKpisProy(E) {
   const q = hoy;
   document.getElementById("proy-kpis").innerHTML =
     caja(`Cierre de hoy · ${etiquetaDia(HOY)} 24:00`, hoy,
-      `<div class="caja-alt">Faltan ${hoy.horas || Math.round(hoy.frac * 24)} h: aporte ≈ <b>${fmt(q.q, 0)} m³/s</b>${q.ajuste && Math.abs(q.ajuste - 1) > 0.02 ? ` (ajustado ${signo((q.ajuste - 1) * 100, 0)}% a lo observado)` : ""} · descarga <b>${fmt(q.D, 0)} m³/s</b>${q.manual ? " (programada)" : ""}</div>`)
+      `<div class="caja-alt">Faltan ${hoy.horas || Math.round(hoy.frac * 24)} h: aporte ≈ <b>${fmt(q.q, 0)} m³/s</b>${q.ajuste && Math.abs(q.ajuste - 1) > 0.02 ? ` (ajustado ${signo((q.ajuste - 1) * 100, 0)}% a lo observado)` : ""} · descarga <b>${fmt(q.D, 0)} m³/s</b>${q.manual ? " (programada)" : ""}${q.lim && q.lim.dia ? ` → promedio del día ${fmt(promedioHoy(q.D), 0)} m³/s` : ""}</div>`)
     + caja(`Mañana · ${etiquetaDia(man.iso)}`, man)
     + caja(`A ${H} días · ${etiquetaDia(finH.iso)}`, finH,
       finH.origen !== "pronostico" ? `<div class="caja-alt">Parte de este horizonte no tiene pronóstico: se completa con la tendencia estacional.</div>` : "")
@@ -3172,13 +3186,20 @@ function renderTablaPrograma(E) {
   const lista = filas.map((x, i) => avisos[i].length ? `<span class="aviso-celda">⚠ ${i === 0 ? "Hoy" : etiquetaDia(x.iso)}: ${avisos[i].join(" · ")}</span>` : "").filter(Boolean);
   document.getElementById("proy-tabla-nota").innerHTML =
     `Escribe la descarga de cada día (m³/s) y pulsa Enter para pasar al día siguiente; ${nMan ? `<b>${nMan} día${nMan === 1 ? "" : "s"} escrito${nMan === 1 ? "" : "s"} a mano</b> (borde de color) y el resto sigue` : "los días sin valor escrito siguen"} ${textoRegla}. El programa se guarda en este navegador.`
+    + (filas[0].lim.dia ? `<div class="caja-s">Hoy van ${filas[0].lim.dia.hObs} h con <b>${fmt(DESC_HOY, 0)} m³/s</b> de promedio. Para que el promedio del día quede en la regla (${fmt(filas[0].lim.dia.lo, 0)}–${fmt(filas[0].lim.dia.hi, 0)} m³/s), las ${filas[0].lim.dia.hRest} h que faltan deben descargar entre <b>${fmt(filas[0].lim.lo, 0)} y ${fmt(filas[0].lim.hi, 0)} m³/s</b>; con ${fmt(filas[0].D, 0)} m³/s el día cierra en <b>${fmt(promedioHoy(filas[0].D), 0)} m³/s</b> de promedio.</div>` : "")
+    + (avisoSubida ? `<div class="aviso-celda">${avisoSubida}</div>` : "")
     + (lista.length ? `<div class="avisos-lista">${lista.join("")}</div>` : "");
 
   document.querySelectorAll("#proy-tabla input").forEach(inp => {
     inp.addEventListener("change", () => {
       const v = parseFloat(String(inp.value).replace(",", "."));
+      avisoSubida = "";
       if (inp.value === "" || !Number.isFinite(v)) delete PROY.manual[inp.dataset.fecha];
-      else PROY.manual[inp.dataset.fecha] = Math.max(0, Math.min(3000, v));
+      else {
+        const lo = Math.ceil(limitesDia(inp.dataset.fecha).lo);
+        PROY.manual[inp.dataset.fecha] = Math.max(lo, Math.min(3000, v));
+        if (v < lo) avisoSubida = `${inp.dataset.fecha === HOY ? "Hoy" : etiquetaDia(inp.dataset.fecha)}: ${fmt(v, 0)} m³/s está bajo la mínima de la regla de operación; se dejó en ${fmt(lo, 0)} m³/s.`;
+      }
       guardarPrograma(); renderProyeccion();
     });
     inp.addEventListener("keydown", e => {
@@ -3406,7 +3427,7 @@ function renderPieProy(E) {
     <div class="caja-k">Cómo se calcula</div>
     <div class="caja-s">Parte del último dato (${U0.fecha_hora.slice(0, 16)}h: ${fmt(U0.nivel, 2)} msnm, ${fmt(U0.volumen_util_hm3, 0)} hm³). Cada día suma aporte − descarga en hm³ y lo pasa a cota con la curva cota-volumen vigente; al llegar a ${fmt(DATA.niveles_referencia.NMAX_OPER, 2)} msnm el exceso se vierte.</div>
     <div class="caja-s">Para lo que queda de hoy usa el pronóstico hora a hora, ajustado a lo que ha entrado en las últimas horas. Los días siguientes usan el pronóstico diario${PROY.aportes === "corregido" ? " con el sesgo corregido" : ""}. </div>
-    <div class="caja-s">Las reglas automáticas respetan la franja mensual de la regla de operación (por ejemplo, noviembre ${fmt(LIM.franja_mensual[10][0], 0)}–${fmt(LIM.franja_mensual[10][1], 0)} m³/s), nunca bajan de la mínima histórica (${fmt(PROY.lim.min, 0)} m³/s, para los meses en que la franja permite menos) ni pasan de las turbinas al ${fmt(PROY.lim.turb, 0)} % (${fmt(CAP_TURB * PROY.lim.turb / 100, 0)} de ${fmt(CAP_TURB, 0)} m³/s). Lo escrito a mano se respeta, con aviso si se sale de esos límites.</div>
+    <div class="caja-s">Las reglas automáticas respetan la franja mensual de la regla de operación (por ejemplo, noviembre ${fmt(LIM.franja_mensual[10][0], 0)}–${fmt(LIM.franja_mensual[10][1], 0)} m³/s), nunca bajan de la mínima histórica (${fmt(PROY.lim.min, 0)} m³/s, para los meses en que la franja permite menos) ni pasan de las turbinas al ${fmt(PROY.lim.turb, 0)} % (${fmt(CAP_TURB * PROY.lim.turb / 100, 0)} de ${fmt(CAP_TURB, 0)} m³/s). Hoy cuenta el promedio de las 24 h: lo que falta del día compensa lo ya descargado. Lo escrito a mano nunca queda bajo la mínima de la regla (se sube a ella y se avisa); si pasa la máxima, se respeta con aviso.</div>
     <div class="caja-s">No reemplaza el despacho ni las reglas de operación: es una herramienta para comparar programas.</div>`;
 }
 
@@ -3427,7 +3448,7 @@ function aplicarPrograma(o) {
                  turb: Number.isFinite(+o.lim.turb) ? Math.max(10, Math.min(100, +o.lim.turb)) : d.turb };
   }
   PROY.manual = {};
-  Object.entries(o.manual || {}).forEach(([f, v]) => { if (/^\d{4}-\d{2}-\d{2}$/.test(f) && f >= HOY && Number.isFinite(+v)) PROY.manual[f] = Math.max(0, Math.min(3000, +v)); });
+  Object.entries(o.manual || {}).forEach(([f, v]) => { if (/^\d{4}-\d{2}-\d{2}$/.test(f) && f >= HOY && Number.isFinite(+v)) PROY.manual[f] = Math.max(Math.ceil(limitesDia(f).lo), Math.min(3000, +v)); });
 }
 function guardarPrograma() { try { localStorage.setItem(CLAVE_LS, JSON.stringify(programaSerializable())); } catch (e) { /* sin almacenamiento: no pasa nada */ } }
 function cargarPrograma() {
@@ -3506,7 +3527,7 @@ function initProyeccion() {
     const v = numDe(e.target); PROY.lim.turb = Number.isFinite(v) ? Math.max(10, Math.min(100, v)) : LIM_DEFECTO().turb;
     sincronizarControles(); guardarPrograma(); renderProyeccion();
   });
-  document.getElementById("proy-limpiar").addEventListener("click", () => { PROY.manual = {}; PROY.lim = LIM_DEFECTO(); sincronizarControles(); guardarPrograma(); renderProyeccion(); });
+  document.getElementById("proy-limpiar").addEventListener("click", () => { PROY.manual = {}; avisoSubida = ""; PROY.lim = LIM_DEFECTO(); sincronizarControles(); guardarPrograma(); renderProyeccion(); });
   document.getElementById("proy-csv").addEventListener("click", () => descargarCsv(ultimoEscenario));
   document.getElementById("proy-enlace").addEventListener("click", async e => {
     const url = enlacePrograma(), btn = e.currentTarget;
